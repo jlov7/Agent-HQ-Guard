@@ -1,0 +1,15 @@
+metadata:
+  name: infra-guard
+  version: 0.1.0
+allow_agents:
+  - openai-codex
+max_tokens_per_run: 5000
+write_scopes:
+  - path: "**"
+    protected:
+      - "infra/**"
+      - "config/**"
+approvals:
+  destructive_ops:
+    required: 1
+provenance_required: true

@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "name": "default",
+    "version": "0.1.0",
+    "description": "Default Agent HQ Guard policy."
+  },
+  "allow_agents": ["openai-codex", "anthropic-claude", "google-jules"],
+  "max_tokens_per_run": 80000,
+  "write_scopes": [
+    {
+      "path": "src/**",
+      "protected": ["infra/**", ".github/**"]
+    }
+  ],
+  "approvals": {
+    "destructive_ops": {
+      "required": 1,
+      "approvers": ["@maintainers"]
+    }
+  },
+  "provenance_required": true
+}

@@ -1,0 +1,9 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./app" },
+    { "path": "./lib/policy" },
+    { "path": "./lib/provenance" },
+    { "path": "./cli" }
+  ]
+}

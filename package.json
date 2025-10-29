@@ -1,0 +1,34 @@
+{
+  "name": "agent-hq-guard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Personal R&D passion project: Agent HQ Guard governance plug-in for GitHub Agent HQ runs.",
+  "scripts": {
+    "build": "pnpm -r run build",
+    "lint": "pnpm -r run lint",
+    "lint:fix": "pnpm -r run lint -- --fix",
+    "test": "pnpm -r run test",
+    "coverage": "pnpm -r run test -- --coverage",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --build tsconfig.json",
+    "security": "pnpm audit --prod",
+    "check": "pnpm lint && pnpm typecheck && pnpm test"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.0",
+    "@vitest/coverage-v8": "^1.6.1",
+    "prettier": "^3.1.1",
+    "typescript": "^5.4.2"
+  },
+  "pnpm": {
+    "packageManager": "pnpm@10.15.1"
+  }
+}

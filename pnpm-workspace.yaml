@@ -1,0 +1,6 @@
+packages:
+  - "app"
+  - "lib/*"
+  - "action"
+  - "cli"
+  - "examples/*"

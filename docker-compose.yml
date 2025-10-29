@@ -1,0 +1,53 @@
+version: "3.9"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/agent_hq_guard
+      - REDIS_URL=redis://redis:6379/0
+      - OPA_URL=http://opa:8181
+    depends_on:
+      - db
+      - redis
+      - opa
+    ports:
+      - "3000:3000"
+
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: agent_hq_guard
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  opa:
+    image: openpolicyagent/opa:latest
+    command:
+      - "run"
+      - "--server"
+      - "/policies"
+    volumes:
+      - ./lib/policy/bundle:/policies
+    ports:
+      - "8181:8181"
+
+  otel:
+    image: otel/opentelemetry-collector-contrib:latest
+    command:
+      - "--config=/etc/otel-collector-config.yaml"
+    volumes:
+      - ./otel/collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"
+      - "4318:4318"

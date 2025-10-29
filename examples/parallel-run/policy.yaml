@@ -1,0 +1,15 @@
+metadata:
+  name: example
+  version: 0.1.0
+allow_agents:
+  - openai-codex
+  - anthropic-claude
+max_tokens_per_run: 60000
+write_scopes:
+  - path: "src/**"
+    protected:
+      - "infra/**"
+approvals:
+  destructive_ops:
+    required: 1
+provenance_required: true

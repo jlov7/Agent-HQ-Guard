@@ -1,0 +1,27 @@
+name: "Agent HQ Guard"
+description: "Validates Agent HQ manifests and enforces per-run guardrails."
+author: "Personal R&D passion project"
+inputs:
+  policy:
+    description: "Path to the Agent HQ Guard policy YAML"
+    required: false
+  manifest_glob:
+    description: "Glob pattern to locate action credential manifests"
+    required: true
+  budget_tokens:
+    description: "Override max tokens for run"
+    required: false
+    default: "0"
+outputs:
+  allow:
+    description: "True if run passes guardrails"
+  reasons:
+    description: "JSON array of reasons for denial"
+  result_path:
+    description: "Path to the generated evaluation JSON"
+runs:
+  using: "node20"
+  main: "dist/index.js"
+branding:
+  color: "purple"
+  icon: "shield"

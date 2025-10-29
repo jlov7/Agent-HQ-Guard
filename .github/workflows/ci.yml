@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm store prune
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          if-no-files-found: ignore
+          path: |
+            app/coverage
+            lib/policy/coverage
+            lib/provenance/coverage
+            action/coverage
+            cli/coverage
+      - run: pnpm security
+
+  build-images:
+    needs: lint-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm store prune
+      - run: pnpm build
+      - name: Generate SBOM
+        run: |
+          curl -L -o syft https://github.com/anchore/syft/releases/download/v0.98.0/syft_0.98.0_linux_amd64
+          chmod +x syft
+          ./syft packages dir:. -o json > sbom.json
+      - name: Cosign Sign
+        env:
+          COSIGN_EXPERIMENTAL: 1
+        run: |
+          cosign version
+          cosign sign-blob --yes --oidc-issuer https://token.actions.githubusercontent.com --output-signature sbom.sig sbom.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: |
+            sbom.json
+            sbom.sig
+
+  publish-docs:
+    needs: build-images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish Docs
+        run: |
+          echo "Docs publication placeholder"

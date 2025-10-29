@@ -1,0 +1,12 @@
+node_modules
+dist
+.DS_Store
+pnpm-lock.yaml
+coverage
+.eslintcache
+.env
+.nyc_output
+*.log
+.idea
+tmp
+data

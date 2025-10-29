@@ -1,0 +1,66 @@
+name: Parallel Agents with Guard
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  agents:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Codex Agent
+        run: |
+          mkdir -p out
+          cat > out/codex.json <<'JSON'
+          {
+            "version": "0.1.0",
+            "run_id": "example-codex",
+            "repository": {
+              "owner": "demo",
+              "name": "repo",
+              "ref": "refs/heads/feature",
+              "commit": "0123456789abcdef0123456789abcdef01234567"
+            },
+            "workflow": {
+              "name": "agents",
+              "run_number": 1,
+              "trigger": "pull_request"
+            },
+            "agents": [
+              {
+                "id": "openai-codex",
+                "provider": "openai",
+                "capabilities": ["code"]
+              }
+            ],
+            "decisions": [],
+            "budgets": {
+              "tokens": 20000,
+              "currency": { "amount": 0, "units": "USD" }
+            },
+            "artifacts": [],
+            "signatures": [
+              {
+                "issuer": "sigstore",
+                "timestamp": "2024-01-01T00:00:00Z",
+                "signature": "-----BEGIN SIGNATURE-----fake-----END SIGNATURE-----",
+                "rekor_entry": "https://rekor.dev/entry/1"
+              }
+            ]
+          }
+          JSON
+
+      - name: Run Guard Action
+        uses: ./action
+        with:
+          policy: examples/parallel-run/policy.yaml
+          manifest_glob: out/*.json
+          budget_tokens: 40000
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agent-hq-guard-manifest
+          path: out
+          retention-days: 7
