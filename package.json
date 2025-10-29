@@ -12,7 +12,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --build tsconfig.json",
-    "security": "pnpm audit --prod",
+    "security": "pnpm audit --prod --audit-level=high",
     "check": "pnpm lint && pnpm typecheck && pnpm test"
   },
   "engines": {

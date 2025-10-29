@@ -11,12 +11,14 @@ That's exactly what Agent HQ Guard does. It's like having a **smart security gua
 ## Why This Matters in 2025
 
 The AI development revolution is here. Companies are using AI agents to:
+
 - Write code automatically
 - Fix bugs faster
 - Generate entire features
 - Work on multiple projects simultaneously
 
 But with great power comes great responsibility. Without guardrails, you risk:
+
 - **💰 Overspending** — AI services charge per "token" (think of tokens as words processed). One runaway agent could cost thousands in minutes.
 - **🔓 Security breaches** — Agents might modify critical infrastructure files or access secrets they shouldn't.
 - **⚖️ Compliance failures** — You can't prove who made what changes, which breaks audit requirements.
@@ -42,6 +44,7 @@ When an AI agent completes work, you'll see:
 ### Example Scenario
 
 **The Good Scenario:**
+
 - Agent named "Claude" works on a feature
 - Spends 45,000 tokens (within budget)
 - Only modifies files in `src/features/`
@@ -49,6 +52,7 @@ When an AI agent completes work, you'll see:
 - ✅ **Check passes** → Safe to merge
 
 **The Problem Scenario:**
+
 - Agent named "GPT-4" tries to work (but isn't on your approved list)
 - Attempts to modify `infra/production.yaml` (protected file)
 - Spends 150,000 tokens (over budget)
@@ -62,6 +66,7 @@ Guard gives humans **override controls** using simple slash commands:
 - `/budget 100k_tokens` — Raise the token budget for this specific PR
 
 These overrides are:
+
 - ✅ Logged for audit purposes
 - ✅ Visible to everyone reviewing the PR
 - ✅ Automatic (no manual configuration needed)
@@ -69,11 +74,13 @@ These overrides are:
 ## Privacy & Security
 
 **What Guard stores:**
+
 - ✅ Hashes (fingerprints) of what agents did
 - ✅ Policy decisions and overrides
 - ✅ Audit logs
 
 **What Guard doesn't store:**
+
 - ❌ Actual code content
 - ❌ Secrets or credentials
 - ❌ Sensitive data
@@ -103,14 +110,17 @@ Manifests (the detailed records) live in GitHub's artifact storage with the same
 ## Real-World Benefits
 
 ### Financial Control
+
 **Before Guard:** "We spent $50,000 on AI tokens last month and don't know why."  
 **After Guard:** "We cap every run at 80,000 tokens. Budget overruns are blocked automatically."
 
 ### Security Confidence
+
 **Before Guard:** "Did an agent modify our production config? We have no idea."  
 **After Guard:** "Any agent touching `infra/` is blocked unless explicitly approved."
 
 ### Compliance Readiness
+
 **Before Guard:** "We can't prove who made this change or when."  
 **After Guard:** "Every change has a cryptographically signed manifest proving provenance."
 
@@ -131,6 +141,7 @@ A: Guard runs as a GitHub App. You can deploy it anywhere (including GitHub's in
 ## The Bottom Line
 
 Agent HQ Guard lets you **adopt AI development tools with confidence**. You get:
+
 - ✅ Financial oversight
 - ✅ Security controls
 - ✅ Compliance proof

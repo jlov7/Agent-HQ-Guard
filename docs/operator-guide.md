@@ -64,6 +64,7 @@ sequenceDiagram
 Guard exposes two health endpoints:
 
 **Liveness (`/healthz`):**
+
 ```bash
 curl http://localhost:3000/healthz
 # Returns: {"status":"ok"}
@@ -74,6 +75,7 @@ curl http://localhost:3000/healthz
 - No dependencies checked
 
 **Readiness (`/readyz`):**
+
 ```bash
 curl http://localhost:3000/readyz
 # Returns: {"status":"ready","missionControlEnabled":true}
@@ -102,12 +104,14 @@ Guard uses Probot's pino logger with structured logging:
 ```
 
 **Log Levels:**
+
 - `debug` — Detailed evaluation steps
 - `info` — Policy decisions, check updates
 - `warn` — Retries, degraded modes
 - `error` — Failures, exceptions
 
 **Ship logs to:**
+
 - OTEL collector (included in `docker-compose.yml`)
 - Your observability stack (Datadog, New Relic, etc.)
 - Centralized logging (ELK, Loki, etc.)
@@ -134,6 +138,7 @@ guard_provenance_verifications_total{valid="true|false"} 234
 ```
 
 **Alert thresholds:**
+
 - Evaluation failures > 5% → Alert
 - MC retry failures > 10% → Alert
 - Provenance failures > 2% → Alert
@@ -153,10 +158,12 @@ Recommended Grafana dashboard panels:
 ### Check Fails Unexpectedly
 
 **Symptoms:**
+
 - PR shows red "Agent HQ Guard" check
 - Unexpected policy violations
 
 **Investigation:**
+
 1. **Check PR annotations** — Guard lists specific reasons
 2. **Review workflow artifacts** — Download `agent-hq-guard-manifest`
 3. **Inspect Guard logs** — Look for evaluation errors
@@ -168,6 +175,7 @@ Recommended Grafana dashboard panels:
    ```
 
 **Resolution:**
+
 - Fix policy if too strict
 - Use slash command override if appropriate
 - Update policy and redeploy
@@ -175,10 +183,12 @@ Recommended Grafana dashboard panels:
 ### Provenance Validation Failure
 
 **Symptoms:**
+
 - "Provenance invalid" error
 - Signature verification failures
 
 **Investigation:**
+
 1. **Verify manifest upload** — Check workflow artifact exists
 2. **Check signing step** — Ensure `cosign sign-blob` ran
 3. **Verify schema** — Manifest matches `action_credential_v0.json`
@@ -191,6 +201,7 @@ Recommended Grafana dashboard panels:
    ```
 
 **Resolution:**
+
 - Fix signing workflow
 - Re-run workflow after fixes
 - Update policy if signing optional temporarily
@@ -198,10 +209,12 @@ Recommended Grafana dashboard panels:
 ### Mission Control Unreachable
 
 **Symptoms:**
+
 - Warnings in logs about MC failures
 - Retry counts increasing
 
 **Investigation:**
+
 1. **Check `AGENT_HQ_API_URL`** — Verify environment variable
 2. **Test connectivity:**
    ```bash
@@ -210,6 +223,7 @@ Recommended Grafana dashboard panels:
 3. **Review retry logs** — Guard retries 3x with exponential backoff
 
 **Resolution:**
+
 - Guard continues working (check status still determined by policy)
 - Fix MC connectivity if needed
 - Disable MC temporarily: `unset AGENT_HQ_API_URL`
@@ -217,10 +231,12 @@ Recommended Grafana dashboard panels:
 ### Storage Degradation
 
 **Symptoms:**
+
 - `/readyz` returns 503
 - Overrides not persisting
 
 **Investigation:**
+
 1. **Check sqlite file** — Verify permissions, disk space
 2. **Test connectivity:**
    ```bash
@@ -228,6 +244,7 @@ Recommended Grafana dashboard panels:
    ```
 
 **Resolution:**
+
 - Fix permissions/disk space
 - Migrate to Postgres for production
 - Restore from backup if corrupted
@@ -235,16 +252,19 @@ Recommended Grafana dashboard panels:
 ### Policy Load Failures
 
 **Symptoms:**
+
 - Checks stuck in "pending"
 - "Policy not found" errors
 
 **Investigation:**
+
 1. **Verify file path** — `.github/agent-hq-guard.yml` exists
 2. **Check permissions** — GitHub App has Contents: Read
 3. **Validate YAML** — Use `yamllint`
 4. **Check logs** — Policy load errors
 
 **Resolution:**
+
 - Fix file path/permissions
 - Validate YAML syntax
 - Ensure policy file committed
@@ -256,11 +276,13 @@ Recommended Grafana dashboard panels:
 Guard supports two slash commands:
 
 **Allow Agent:**
+
 ```
 /agent-allow @openai-codex
 ```
 
 **Adjust Budget:**
+
 ```
 /budget 100k_tokens
 ```
@@ -276,6 +298,7 @@ Guard supports two slash commands:
 ### Audit Trail
 
 All overrides logged:
+
 - PR number
 - Override type/value
 - Maintainer who issued
@@ -283,6 +306,7 @@ All overrides logged:
 - Policy evaluation result
 
 **Query overrides:**
+
 ```bash
 sqlite3 guard.db "SELECT * FROM overrides WHERE pr_number = 123;"
 ```
@@ -293,6 +317,7 @@ sqlite3 guard.db "SELECT * FROM overrides WHERE pr_number = 123;"
 **Future:** Post-merge cleanup hooks to purge overrides
 
 **Manual cleanup:**
+
 ```bash
 # Delete overrides for merged PRs
 sqlite3 guard.db "DELETE FROM overrides WHERE pr_number IN (SELECT number FROM merged_prs);"
@@ -316,15 +341,18 @@ sqlite3 guard.db "DELETE FROM overrides WHERE pr_number IN (SELECT number FROM m
 ### Retention Policies
 
 **Manifests:**
+
 - Stored in GitHub artifacts (90-day default retention)
 - Configure retention per repository
 - Archive externally for compliance
 
 **Overrides:**
+
 - Sqlite storage (no automatic cleanup)
 - Plan manual cleanup or scheduled jobs
 
 **Logs:**
+
 - Follow your observability stack retention
 - Typically 30-90 days
 - Archive critical events longer
@@ -341,12 +369,14 @@ sqlite3 guard.db "DELETE FROM overrides WHERE pr_number IN (SELECT number FROM m
 ### Key Rotation
 
 **GitHub App Private Key:**
+
 1. Regenerate in GitHub App settings
 2. Update `PRIVATE_KEY_PATH` environment variable
 3. Redeploy Guard App
 4. Old key invalidated immediately
 
 **Webhook Secret:**
+
 1. Generate new secret
 2. Update `WEBHOOK_SECRET`
 3. Update GitHub App webhook URL
@@ -357,6 +387,7 @@ sqlite3 guard.db "DELETE FROM overrides WHERE pr_number IN (SELECT number FROM m
 ### SBOM & Signing
 
 **CI Pipeline:**
+
 ```yaml
 - name: Generate SBOM
   run: |
@@ -371,6 +402,7 @@ sqlite3 guard.db "DELETE FROM overrides WHERE pr_number IN (SELECT number FROM m
 ```
 
 **Verification:**
+
 ```bash
 cosign verify-blob --bundle sbom.json.bundle sbom.json
 ```
@@ -385,11 +417,13 @@ cosign verify-blob --bundle sbom.json.bundle sbom.json
 ### Access Controls
 
 **GitHub App Permissions:**
+
 - Minimal required permissions
 - Repository-scoped (not organization-wide by default)
 - Review permissions regularly
 
 **Environment Variables:**
+
 - Use secrets management (K8s secrets, Fly secrets, etc.)
 - Never commit secrets to git
 - Rotate regularly
@@ -399,17 +433,20 @@ cosign verify-blob --bundle sbom.json.bundle sbom.json
 ### Regular Maintenance
 
 **Weekly:**
+
 - [ ] Review override usage (slash commands)
 - [ ] Check policy evaluation metrics
 - [ ] Monitor provenance verification rates
 
 **Monthly:**
+
 - [ ] Review and update policies
 - [ ] Clean up old overrides
 - [ ] Review dependency updates (Dependabot)
 - [ ] Check storage growth (sqlite)
 
 **Quarterly:**
+
 - [ ] Rotate GitHub App credentials
 - [ ] Review access permissions
 - [ ] Update Guard App version
@@ -439,6 +476,7 @@ When updating policies:
 ### Database Migration
 
 **Sqlite → Postgres:**
+
 ```bash
 # Export overrides
 sqlite3 guard.db ".dump overrides" > overrides.sql
@@ -448,6 +486,7 @@ psql -d guard_db -f overrides.sql
 ```
 
 **Update connection string:**
+
 ```bash
 export DATABASE_URL="postgresql://user:pass@host/db"
 ```
@@ -476,18 +515,22 @@ Recommended branch protection settings:
 ### Common Issues
 
 **Issue: Check stuck in "pending"**
+
 - **Cause:** Policy not loaded
 - **Fix:** Verify `.github/agent-hq-guard.yml` exists and is valid
 
 **Issue: Overrides not working**
+
 - **Cause:** Storage connectivity issue
 - **Fix:** Check sqlite file permissions, disk space
 
 **Issue: High latency**
+
 - **Cause:** Policy complexity, network issues
 - **Fix:** Optimize policy patterns, check network connectivity
 
 **Issue: Provenance always fails**
+
 - **Cause:** Signing workflow broken
 - **Fix:** Verify `cosign sign-blob` step in workflows
 

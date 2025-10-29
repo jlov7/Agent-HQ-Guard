@@ -7,17 +7,20 @@ Provenance—the cryptographic proof of who made what changes and when—is esse
 ## Why Provenance Matters
 
 In traditional software development, you know who made changes because:
+
 - Git commits are tied to developer identities
 - Code reviews provide human oversight
 - CI/CD logs show execution history
 
 **With AI agents, this breaks down:**
+
 - ✅ Multiple AI providers can collaborate
 - ✅ Changes happen autonomously
 - ✅ No direct "developer" identity
 - ❌ Need cryptographic proof of origin
 
 **Provenance solves this by providing:**
+
 - 🔐 **Cryptographic signatures** — Prove who signed the manifest
 - 📋 **Audit trails** — Immutable record in transparency logs
 - 🎯 **Non-repudiation** — Can't deny who made changes
@@ -72,15 +75,15 @@ Guard uses the Action Credential schema (`packages/schemas/action_credential_v0.
 
 ### Key Fields
 
-| Field | Purpose | Example |
-|-------|---------|---------|
-| `version` | Schema version | `"0.1.0"` |
-| `run_id` | Mission control identifier | `"run-123"` |
-| `agents[]` | Participating agents | `[{ "id": "claude" }]` |
-| `budgets.tokens` | Token consumption | `45000` |
-| `artifacts[]` | Changed files with hashes | `[{ "path": "src/a.ts" }]` |
-| `signatures[]` | Sigstore signatures | `[{ "signature": "..." }]` |
-| `bindings[]` | Additional attestations | `[{ "type": "sha256" }]` |
+| Field            | Purpose                    | Example                    |
+| ---------------- | -------------------------- | -------------------------- |
+| `version`        | Schema version             | `"0.1.0"`                  |
+| `run_id`         | Mission control identifier | `"run-123"`                |
+| `agents[]`       | Participating agents       | `[{ "id": "claude" }]`     |
+| `budgets.tokens` | Token consumption          | `45000`                    |
+| `artifacts[]`    | Changed files with hashes  | `[{ "path": "src/a.ts" }]` |
+| `signatures[]`   | Sigstore signatures        | `[{ "signature": "..." }]` |
+| `bindings[]`     | Additional attestations    | `[{ "type": "sha256" }]`   |
 
 ## Signing Workflow
 
@@ -92,8 +95,8 @@ Your agent workflow creates a credential manifest:
 {
   "version": "0.1.0",
   "run_id": "workflow-123",
-  "agents": [{"id": "openai-codex"}],
-  "budgets": {"tokens": 45000},
+  "agents": [{ "id": "openai-codex" }],
+  "budgets": { "tokens": 45000 },
   "artifacts": []
 }
 ```
@@ -110,6 +113,7 @@ cosign sign-blob \
 ```
 
 **What this does:**
+
 - Creates a Sigstore signature
 - Uses GitHub OIDC for authentication (no keys to manage)
 - Uploads to Rekor transparency log
@@ -158,6 +162,7 @@ Guard App downloads and verifies:
 ```
 
 **Benefits:**
+
 - ✅ Industry standard (CNCF Sigstore)
 - ✅ OIDC authentication (no key management)
 - ✅ Transparency log (immutable record)
@@ -178,6 +183,7 @@ Guard App downloads and verifies:
 ```
 
 **Benefits:**
+
 - ✅ Supply chain attestations
 - ✅ Link attestations together
 - ✅ Policy-driven verification
@@ -200,6 +206,7 @@ Guard App downloads and verifies:
 ```
 
 **Benefits:**
+
 - ✅ Rich metadata embedding
 - ✅ Industry standard (C2PA)
 - ✅ Cross-platform compatibility
@@ -212,21 +219,21 @@ Guard performs verification automatically:
 
 ```typescript
 // 1. Schema validation
-validateSchema(manifest, ACTION_CREDENTIAL_V0_SCHEMA)
+validateSchema(manifest, ACTION_CREDENTIAL_V0_SCHEMA);
 
 // 2. Signature verification
-cosign.verifyBlob(manifest, signatureBundle)
+cosign.verifyBlob(manifest, signatureBundle);
 
 // 3. Certificate validation
 validateCertificate(certificate, {
   issuer: "https://token.actions.githubusercontent.com"
-})
+});
 
 // 4. Rekor lookup
-rekor.getEntry(rekorUuid)
+rekor.getEntry(rekorUuid);
 
 // 5. Generate summary
-createCredentialSummaryMarkdown(manifest, verificationResult)
+createCredentialSummaryMarkdown(manifest, verificationResult);
 ```
 
 ### Manual Verification
@@ -272,6 +279,7 @@ Manifests live in GitHub's artifact storage:
 ### Future: Long-Term Archive
 
 Planned features:
+
 - Post-merge manifest archival
 - External storage integration (S3, GCS)
 - Compliance retention policies
@@ -313,6 +321,7 @@ Embed C2PA manifests or reference them:
 ```
 
 **Benefits:**
+
 - ✅ Embedded in artifacts
 - ✅ Portable across systems
 - ✅ Rich metadata
@@ -333,6 +342,7 @@ Use hash pointers when embedding isn't possible:
 ```
 
 **Use cases:**
+
 - PDFs (can't embed)
 - Binary files
 - Legacy formats
@@ -342,12 +352,14 @@ Use hash pointers when embedding isn't possible:
 ### "Provenance invalid" Error
 
 **Check:**
+
 1. Manifest uploaded to artifact?
 2. Manifest signed with cosign?
 3. Schema matches `action_credential_v0.json`?
 4. OIDC issuer matches GitHub Actions?
 
 **Fix:**
+
 ```bash
 # Re-sign manifest
 cosign sign-blob --oidc-issuer https://token.actions.githubusercontent.com manifest.json
@@ -358,11 +370,13 @@ cosign sign-blob --oidc-issuer https://token.actions.githubusercontent.com manif
 ### "Signature verification failed"
 
 **Check:**
+
 1. Certificate matches OIDC issuer?
 2. Rekor entry exists?
 3. Signature bundle format correct?
 
 **Fix:**
+
 ```bash
 # Verify manually
 cosign verify-blob --bundle manifest.json.bundle manifest.json
@@ -374,10 +388,12 @@ rekor-cli get --uuid <rekor-uuid>
 ### "Rekor lookup timeout"
 
 **Check:**
+
 1. Rekor API accessible?
 2. UUID correct?
 
 **Fix:**
+
 - Guard retries automatically
 - Check Rekor status: https://rekor.sigstore.dev/api/v1/log
 - Use alternative Rekor instance if needed
@@ -413,6 +429,7 @@ aws s3 cp manifest.json s3://archive/manifests/
 ### 4. Monitor Verification Failures
 
 Set up alerts for:
+
 - Provenance validation failures
 - Signature verification errors
 - Rekor lookup timeouts
@@ -420,6 +437,7 @@ Set up alerts for:
 ### 5. Document Signing Process
 
 Keep docs updated:
+
 - Signing workflow steps
 - Troubleshooting procedures
 - Archive retention policies

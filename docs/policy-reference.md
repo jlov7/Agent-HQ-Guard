@@ -10,21 +10,21 @@ Every policy file (`.github/agent-hq-guard.yml`) follows this structure:
 
 ```yaml
 metadata:
-  name: string          # Policy identifier
-  version: string       # Semantic version
-  description: string   # Optional description
+  name: string # Policy identifier
+  version: string # Semantic version
+  description: string # Optional description
 
-allow_agents: []        # Whitelist of agent IDs
+allow_agents: [] # Whitelist of agent IDs
 max_tokens_per_run: int # Token budget (0 = unlimited)
 
-write_scopes:           # File write permissions
-  - path: string        # Glob pattern for allowed writes
-    protected: []       # Glob patterns requiring approval
+write_scopes: # File write permissions
+  - path: string # Glob pattern for allowed writes
+    protected: [] # Glob patterns requiring approval
 
 approvals:
   destructive_ops:
-    required: int       # Number of approvals needed
-    approvers: []       # Optional: specific approvers
+    required: int # Number of approvals needed
+    approvers: [] # Optional: specific approvers
 
 provenance_required: bool # Require signed manifests
 ```
@@ -56,11 +56,13 @@ allow_agents:
 ```
 
 **Behavior:**
+
 - If empty (`[]`), all agents are allowed
 - If non-empty, only listed agents pass
 - Agent IDs must match `credential.agents[].id` from manifests
 
 **Example violation:**
+
 ```yaml
 allow_agents: ["openai-codex"]
 # Agent "anthropic-claude" runs → BLOCKED
@@ -75,11 +77,13 @@ max_tokens_per_run: 80000
 ```
 
 **Behavior:**
+
 - `0` = unlimited (no budget enforcement)
 - Positive integer = hard cap
 - Guards against runaway costs
 
 **Example violations:**
+
 ```yaml
 max_tokens_per_run: 50000
 # Run consumes 75,000 tokens → BLOCKED
@@ -91,28 +95,30 @@ Defines where agents can write files and which paths require approval.
 
 ```yaml
 write_scopes:
-  - path: "src/**"           # Allow writes to src/
-    protected:               # But protect these:
-      - "src/infra/**"       # Infrastructure changes
-      - "src/secrets/**"     # Secret files
+  - path: "src/**" # Allow writes to src/
+    protected: # But protect these:
+      - "src/infra/**" # Infrastructure changes
+      - "src/secrets/**" # Secret files
 ```
 
 **Path Matching:**
+
 - `**` matches any directory depth
 - `*` matches single directory level
 - Patterns are glob-style (not regex)
 
 **Behavior:**
+
 - Agents can write to `path` patterns
 - If they touch `protected` patterns, approvals are required
 - Protected paths without approvals → BLOCKED
 
 **Example:**
+
 ```yaml
 write_scopes:
   - path: "src/**"
     protected: ["src/infra/**"]
-
 # ✅ Allowed: src/features/new-feature.ts
 # ❌ Blocked: src/infra/deploy.yaml (needs approval)
 ```
@@ -131,6 +137,7 @@ approvals:
 ```
 
 **Behavior:**
+
 - `required` = minimum number of approved PR reviews
 - `approvers` = optional list of teams/users (future feature)
 - If `required` = 0, no approvals needed
@@ -146,10 +153,12 @@ provenance_required: true
 ```
 
 **Behavior:**
+
 - `true` = manifest must be signed and valid
 - `false` = signing optional (not recommended for production)
 
 **What gets verified:**
+
 - Signature presence (Sigstore envelope)
 - Certificate validity (OIDC issuer)
 - Rekor transparency log entry
@@ -163,13 +172,13 @@ provenance_required: true
 metadata:
   name: permissive
   version: 1.0.0
-allow_agents: []              # All agents allowed
-max_tokens_per_run: 0        # No budget limit
-write_scopes: []              # No scope restrictions
+allow_agents: [] # All agents allowed
+max_tokens_per_run: 0 # No budget limit
+write_scopes: [] # No scope restrictions
 approvals:
   destructive_ops:
-    required: 0              # No approvals needed
-provenance_required: false    # Signing optional
+    required: 0 # No approvals needed
+provenance_required: false # Signing optional
 ```
 
 **Use case:** Development/testing environments where speed matters more than governance.
@@ -195,11 +204,11 @@ write_scopes:
       - "src/.env.*"
       - "src/secrets/**"
   - path: "docs/**"
-    protected: []            # No protection needed
+    protected: [] # No protection needed
 
 approvals:
   destructive_ops:
-    required: 2              # Require 2 approvals
+    required: 2 # Require 2 approvals
     approvers:
       - "@security-team"
       - "@platform-team"
@@ -217,9 +226,9 @@ metadata:
   version: 1.0.0
 
 allow_agents:
-  - anthropic-claude         # Only Claude allowed
+  - anthropic-claude # Only Claude allowed
 
-max_tokens_per_run: 100000   # Higher budget for team
+max_tokens_per_run: 100000 # Higher budget for team
 
 write_scopes:
   - path: "frontend/**"
@@ -315,10 +324,7 @@ The evaluator feeds this structure into OPA:
     "cost_estimate": 0.012
   },
   "changes": {
-    "files": [
-      "src/index.ts",
-      "src/infra/config.yaml"
-    ],
+    "files": ["src/index.ts", "src/infra/config.yaml"],
     "additions": 150,
     "deletions": 50
   },
@@ -330,7 +336,9 @@ The evaluator feeds this structure into OPA:
   },
   "provenance": {
     "valid": true,
-    "credential": { /* ActionCredential */ }
+    "credential": {
+      /* ActionCredential */
+    }
   },
   "overrides": {
     "allowed_agents": [],
@@ -364,7 +372,6 @@ Policies define defaults, but maintainers can override:
 ```yaml
 # Policy sets default
 max_tokens_per_run: 50000
-
 # Maintainer comments on PR:
 # /budget 100k_tokens
 
@@ -383,16 +390,16 @@ write_scopes:
       - "infra/**"
       - "**/terraform/**"
       - "**/k8s/**"
-      
+
       # Secrets
       - "**/.env*"
       - "**/secrets/**"
       - "**/*secret*.yaml"
-      
+
       # CI/CD
       - ".github/**"
       - ".gitlab-ci.yml"
-      
+
       # Production configs
       - "**/production/**"
       - "**/prod/**"
@@ -418,9 +425,7 @@ Create test manifests:
 {
   "version": "0.1.0",
   "run_id": "test-run-123",
-  "agents": [
-    { "id": "openai-codex", "capabilities": [] }
-  ],
+  "agents": [{ "id": "openai-codex", "capabilities": [] }],
   "budgets": {
     "tokens": 45000
   },
@@ -469,9 +474,7 @@ tool_approvals:
     }
   ],
   "proxy": {
-    "audit_log": [
-      { "timestamp": "...", "action": "..." }
-    ]
+    "audit_log": [{ "timestamp": "...", "action": "..." }]
   }
 }
 ```
@@ -485,10 +488,11 @@ Use semantic versions for policies:
 ```yaml
 metadata:
   name: production-guard
-  version: 1.2.3  # MAJOR.MINOR.PATCH
+  version: 1.2.3 # MAJOR.MINOR.PATCH
 ```
 
 **Guidelines:**
+
 - **MAJOR:** Breaking changes (e.g., schema changes)
 - **MINOR:** New features (e.g., new policy fields)
 - **PATCH:** Bug fixes, clarifications

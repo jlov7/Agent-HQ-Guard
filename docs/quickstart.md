@@ -48,12 +48,12 @@ Agent HQ Guard runs as a GitHub App, which gives it secure access to your reposi
 
 Agent HQ Guard needs these permissions:
 
-| Permission | Access Level | Why |
-|------------|--------------|-----|
-| **Checks** | Read & Write | Update check status on PRs |
-| **Contents** | Read | Read repository contents and policy files |
-| **Pull requests** | Read | Monitor PR state and approvals |
-| **Metadata** | Read | Access repository metadata |
+| Permission        | Access Level | Why                                       |
+| ----------------- | ------------ | ----------------------------------------- |
+| **Checks**        | Read & Write | Update check status on PRs                |
+| **Contents**      | Read         | Read repository contents and policy files |
+| **Pull requests** | Read         | Monitor PR state and approvals            |
+| **Metadata**      | Read         | Access repository metadata                |
 
 ### 2.4 Subscribe to Events
 
@@ -101,23 +101,24 @@ max_tokens_per_run: 80000
 
 # File scope controls
 write_scopes:
-  - path: "src/**"      # Allow writes to src/
-    protected:          # But protect these subdirectories
-      - "infra/**"      # Infrastructure changes need approval
-      - ".github/**"    # GitHub workflows need approval
+  - path: "src/**" # Allow writes to src/
+    protected: # But protect these subdirectories
+      - "infra/**" # Infrastructure changes need approval
+      - ".github/**" # GitHub workflows need approval
 
 # Approval requirements
 approvals:
   destructive_ops:
-    required: 1          # Need at least 1 approval for protected files
+    required: 1 # Need at least 1 approval for protected files
     approvers:
-      - "@maintainers"   # Optional: specific teams/groups
+      - "@maintainers" # Optional: specific teams/groups
 
 # Require signed manifests for audit
 provenance_required: true
 ```
 
 **Understanding the policy:**
+
 - `allow_agents` — Whitelist of approved AI providers
 - `max_tokens_per_run` — Hard budget cap (prevents runaway costs)
 - `write_scopes[].protected` — Files that require human approval
@@ -159,7 +160,8 @@ jobs:
           retention-days: 90
 ```
 
-**What this does:** 
+**What this does:**
+
 - Validates agent manifests against your policy
 - Fails fast if budgets or provenance are violated
 - Uploads manifests for Guard App to verify
@@ -173,6 +175,7 @@ docker-compose up --build
 ```
 
 This starts:
+
 - ✅ Guard GitHub App (Probot)
 - ✅ PostgreSQL (for storage)
 - ✅ Redis (for caching)
@@ -216,6 +219,7 @@ Enforce Guard checks at the repository level:
 If you have access to GitHub Agent HQ's mission control API:
 
 1. Set environment variable:
+
    ```bash
    export AGENT_HQ_API_URL="https://mission-control.example.com"
    ```
@@ -246,6 +250,7 @@ If you have access to GitHub Agent HQ's mission control API:
 ### Production Deployment Options
 
 **Option 1: Fly.io / Heroku**
+
 ```bash
 # Fly.io example
 fly launch
@@ -253,12 +258,14 @@ fly secrets set APP_ID=xxx PRIVATE_KEY_PATH=xxx WEBHOOK_SECRET=xxx
 ```
 
 **Option 2: Kubernetes**
+
 ```yaml
 # Use Helm chart or deploy directly
 # Ensure health endpoints are exposed
 ```
 
 **Option 3: GitHub Actions (Self-Hosted Runner)**
+
 - Deploy Guard App as a service
 - Configure webhook URL to your runner's public URL
 

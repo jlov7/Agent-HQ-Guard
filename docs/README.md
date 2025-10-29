@@ -6,15 +6,15 @@ Agent HQ Guard provides governance for autonomous AI development. This hub helps
 
 ## 🎯 Start Here Based on Your Role
 
-| Role | Start Here | What You'll Learn |
-|------|------------|-------------------|
-| **👋 New to Guard** | [Quick Start](quickstart.md) | Install, configure, and deploy in under an hour |
-| **💼 Business Stakeholder** | [Non-Technical Guide](non-technical-guide.md) | Why Guard matters and what to expect |
-| **🔧 DevOps/SRE** | [Operator Guide](operator-guide.md) | Runbooks, monitoring, incident response |
-| **🛡️ Security Professional** | [Provenance](provenance.md) | Cryptographic signing, verification, compliance |
-| **📋 Policy Author** | [Policy Reference](policy-reference.md) | YAML schema, Rego compilation, examples |
-| **🏗️ Architect** | [Architecture](architecture.md) | System design, data flows, deployment |
-| **❓ Everyone** | [FAQ](faq.md) | Common questions and troubleshooting |
+| Role                         | Start Here                                    | What You'll Learn                               |
+| ---------------------------- | --------------------------------------------- | ----------------------------------------------- |
+| **👋 New to Guard**          | [Quick Start](quickstart.md)                  | Install, configure, and deploy in under an hour |
+| **💼 Business Stakeholder**  | [Non-Technical Guide](non-technical-guide.md) | Why Guard matters and what to expect            |
+| **🔧 DevOps/SRE**            | [Operator Guide](operator-guide.md)           | Runbooks, monitoring, incident response         |
+| **🛡️ Security Professional** | [Provenance](provenance.md)                   | Cryptographic signing, verification, compliance |
+| **📋 Policy Author**         | [Policy Reference](policy-reference.md)       | YAML schema, Rego compilation, examples         |
+| **🏗️ Architect**             | [Architecture](architecture.md)               | System design, data flows, deployment           |
+| **❓ Everyone**              | [FAQ](faq.md)                                 | Common questions and troubleshooting            |
 
 ## 📚 Documentation Structure
 
@@ -62,11 +62,13 @@ Agent HQ Guard enforces **policy-driven governance** for autonomous AI agent run
 ### Two Integration Paths
 
 **Compatibility Mode (Default):**
+
 - Works with any GitHub Actions workflow
 - Uses GitHub Checks API to block merges
 - No special access required
 
 **Native Mission Control (Feature-Flagged):**
+
 - Requires `AGENT_HQ_API_URL` environment variable
 - Streams decisions upstream before tools execute
 - Reduced latency for policy violations
@@ -83,21 +85,25 @@ Agent HQ Guard enforces **policy-driven governance** for autonomous AI agent run
 ## 🎓 Learning Paths
 
 ### Path 1: Quick Deployment
+
 1. [Quick Start](quickstart.md) — Get Guard running
 2. [Policy Reference](policy-reference.md) — Configure policies
 3. [Operator Guide](operator-guide.md) — Monitor and maintain
 
 ### Path 2: Understanding the Why
+
 1. [Non-Technical Guide](non-technical-guide.md) — Business value
 2. [FAQ](faq.md) — Common questions
 3. [Architecture](architecture.md) — How it works
 
 ### Path 3: Security & Compliance
+
 1. [Provenance](provenance.md) — Cryptographic signing
 2. [Policy Reference](policy-reference.md) — Security policies
 3. [Operator Guide](operator-guide.md) — Security controls
 
 ### Path 4: Deep Technical Dive
+
 1. [Architecture](architecture.md) — System design
 2. [Policy Reference](policy-reference.md) — Rego compilation
 3. [Provenance](provenance.md) — Signature verification
@@ -107,22 +113,27 @@ Agent HQ Guard enforces **policy-driven governance** for autonomous AI agent run
 ### By Topic
 
 **Installation & Setup:**
+
 - [Quick Start](quickstart.md) — Complete setup guide
 - [Architecture](architecture.md) — Deployment topologies
 
 **Policy Configuration:**
+
 - [Policy Reference](policy-reference.md) — Complete schema
 - [FAQ](faq.md) — Common policy questions
 
 **Security & Compliance:**
+
 - [Provenance](provenance.md) — Cryptographic signing
 - [Operator Guide](operator-guide.md) — Security controls
 
 **Operations:**
+
 - [Operator Guide](operator-guide.md) — Runbooks and monitoring
 - [FAQ](faq.md) — Troubleshooting
 
 **Understanding Guard:**
+
 - [Non-Technical Guide](non-technical-guide.md) — Plain language
 - [Architecture](architecture.md) — Technical deep dive
 
@@ -149,43 +160,50 @@ Agent HQ Guard enforces **policy-driven governance** for autonomous AI agent run
 ## 📖 Document Details
 
 ### Quick Start Guide
+
 **Length:** ~15 minutes  
 **Prerequisites:** GitHub org admin, Node.js, Docker  
 **Covers:** Installation, GitHub App setup, policy configuration, deployment
 
 ### Non-Technical Guide
+
 **Length:** ~10 minutes  
 **Prerequisites:** None  
 **Covers:** Business value, what to expect, common questions
 
 ### Operator Guide
+
 **Length:** ~20 minutes  
 **Prerequisites:** SRE/DevOps experience  
 **Covers:** Monitoring, incident response, security controls, maintenance
 
 ### Policy Reference
+
 **Length:** ~25 minutes  
 **Prerequisites:** YAML familiarity  
 **Covers:** Schema, Rego compilation, examples, testing
 
 ### Provenance Guide
+
 **Length:** ~20 minutes  
 **Prerequisites:** Security concepts  
 **Covers:** Cryptographic signing, verification, compliance
 
 ### Architecture Guide
+
 **Length:** ~30 minutes  
 **Prerequisites:** Software architecture knowledge  
 **Covers:** System design, data flows, deployment, observability
 
 ### FAQ
+
 **Length:** ~15 minutes  
 **Prerequisites:** None  
 **Covers:** Common questions, troubleshooting, best practices
 
 ## 🤝 Contributing to Documentation
 
-Found an error or have suggestions? 
+Found an error or have suggestions?
 
 1. Open an issue describing the problem
 2. Or submit a PR with improvements
@@ -203,17 +221,20 @@ Found an error or have suggestions?
 ## 🎯 Next Steps
 
 **Ready to get started?**
+
 1. Read [Quick Start](quickstart.md)
 2. Configure your first policy
 3. Deploy Guard to a test repository
 4. Monitor with [Operator Guide](operator-guide.md)
 
 **Want to understand more?**
+
 1. Read [Non-Technical Guide](non-technical-guide.md)
 2. Explore [Architecture](architecture.md)
 3. Review [FAQ](faq.md)
 
 **Need to customize?**
+
 1. Study [Policy Reference](policy-reference.md)
 2. Review [Provenance](provenance.md) for compliance
 3. Check [Operator Guide](operator-guide.md) for operations

@@ -24,14 +24,14 @@ Agent HQ Guard consists of five main components:
 
 ### Component Responsibilities
 
-| Component | Purpose | Technology |
-|-----------|---------|------------|
-| **GitHub App** | Receives webhooks, orchestrates evaluation, updates checks | Probot (Express) |
-| **GitHub Action** | Validates manifests in CI/CD, fails fast | TypeScript/Node |
-| **Policy Engine** | Compiles YAML policies to Rego, validates schema | Rego/OPA |
-| **Provenance Library** | Validates signatures, renders summaries | Sigstore/C2PA |
-| **Storage** | Persists overrides, caches policies | SQLite |
-| **CLI** | Local simulation and testing | TypeScript |
+| Component              | Purpose                                                    | Technology       |
+| ---------------------- | ---------------------------------------------------------- | ---------------- |
+| **GitHub App**         | Receives webhooks, orchestrates evaluation, updates checks | Probot (Express) |
+| **GitHub Action**      | Validates manifests in CI/CD, fails fast                   | TypeScript/Node  |
+| **Policy Engine**      | Compiles YAML policies to Rego, validates schema           | Rego/OPA         |
+| **Provenance Library** | Validates signatures, renders summaries                    | Sigstore/C2PA    |
+| **Storage**            | Persists overrides, caches policies                        | SQLite           |
+| **CLI**                | Local simulation and testing                               | TypeScript       |
 
 ## Detailed Flow: Compatibility Path
 
@@ -162,9 +162,7 @@ The evaluator produces:
 {
   "allow": true,
   "reasons": [],
-  "annotations": [
-    { "path": "src/infra/config.yaml", "message": "Protected path modified" }
-  ]
+  "annotations": [{ "path": "src/infra/config.yaml", "message": "Protected path modified" }]
 }
 ```
 
@@ -251,14 +249,14 @@ Result → Summary Generation → PR Comment
 
 ### Latency Breakdown
 
-| Step | Typical Latency | Notes |
-|------|----------------|-------|
-| Webhook receipt | < 100ms | Network-dependent |
-| Policy load | < 50ms | Cached after first load |
-| OPA evaluation | < 10ms | Rego is fast |
-| Provenance check | < 200ms | Sigstore API calls |
-| Check update | < 100ms | GitHub API |
-| **Total** | **< 500ms** | End-to-end |
+| Step             | Typical Latency | Notes                   |
+| ---------------- | --------------- | ----------------------- |
+| Webhook receipt  | < 100ms         | Network-dependent       |
+| Policy load      | < 50ms          | Cached after first load |
+| OPA evaluation   | < 10ms          | Rego is fast            |
+| Provenance check | < 200ms         | Sigstore API calls      |
+| Check update     | < 100ms         | GitHub API              |
+| **Total**        | **< 500ms**     | End-to-end              |
 
 ### Scalability Considerations
 
@@ -303,6 +301,7 @@ Guard uses Probot's pino logger with structured logging:
 ### Metrics (Recommended)
 
 Track these metrics:
+
 - `guard_evaluations_total` — Total policy evaluations
 - `guard_allows_total` — Policy passes
 - `guard_blocks_total` — Policy failures
