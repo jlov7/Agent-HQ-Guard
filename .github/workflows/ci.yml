@@ -23,7 +23,7 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: always()
         with:
           name: coverage
@@ -62,7 +62,7 @@ jobs:
         run: |
           cosign version
           cosign sign-blob --yes --oidc-issuer https://token.actions.githubusercontent.com --output-signature sbom.sig sbom.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: sbom
           path: |
