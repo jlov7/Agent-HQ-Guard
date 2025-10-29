@@ -15,6 +15,14 @@ As we enter 2025, GitHub Agent HQ and similar platforms are enabling **multi-age
 
 **Answer:** Without guardrails, you're flying blind. Agent HQ Guard puts you back in control.
 
+## Project Status
+
+**Agent HQ Guard is a personal R&D passion project** exploring governance solutions for autonomous AI development. This represents independent research and experimentation driven by curiosity about how to safely integrate AI agents into software development workflows.
+
+This is **not a commercial product** or an actively maintained service. It's shared publicly as open-source research that others may find useful, adapt, or learn from. No warranties, guarantees, or ongoing support commitments are implied.
+
+---
+
 ## Why This Matters Now
 
 The AI development landscape is accelerating faster than traditional governance can keep up. Organizations adopting autonomous agents face:
@@ -24,7 +32,7 @@ The AI development landscape is accelerating faster than traditional governance 
 - **Compliance gaps** — Lack of audit trails and provenance for AI-generated changes
 - **Trust deficits** — Teams hesitant to adopt AI without governance
 
-Agent HQ Guard bridges this gap by providing **policy-driven enforcement** that works seamlessly with GitHub's ecosystem while maintaining the speed and flexibility that makes AI agents powerful.
+Agent HQ Guard explores how **policy-driven enforcement** can work seamlessly with GitHub's ecosystem while maintaining the speed and flexibility that makes AI agents powerful.
 
 ## What Agent HQ Guard Delivers
 
@@ -148,14 +156,14 @@ See [examples/](examples/) for reference scenarios.
 
 ## The Vision
 
-Agent HQ Guard exists because **autonomous AI development needs governance**, not gatekeeping. We're building the tools that let teams:
+Agent HQ Guard exists because **autonomous AI development needs governance**, not gatekeeping. This project explores how teams might:
 
 - ✅ Adopt AI agents with confidence
 - ✅ Maintain financial and security controls
 - ✅ Meet compliance requirements
 - ✅ Build audit trails for the AI era
 
-This is a **personal R&D passion project** born from the need to keep Universe 2025 agents from scribbling over `main`—but it's designed to scale with the entire industry.
+This is a **personal R&D passion project** born from continuous exploration and experimentation with AI development tools. It represents independent research into governance patterns that could help teams safely adopt autonomous agents—shared openly for the community to learn from, adapt, or build upon.
 
 ## Roadmap
 
@@ -166,7 +174,7 @@ This is a **personal R&D passion project** born from the need to keep Universe 2
 
 ## Contributing
 
-This project is actively developed. See [docs/](docs/) for architectural guidance and contribution workflows.
+This project is shared as open-source research and experimentation. While I welcome contributions, discussions, and feedback, please understand this is a personal R&D project with no formal roadmap or support commitments. See [docs/](docs/) for architectural guidance and understanding the codebase.
 
 ---
 

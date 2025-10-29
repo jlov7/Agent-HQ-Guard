@@ -142,4 +142,10 @@ Without sacrificing the speed and flexibility that makes AI agents powerful.
 
 ---
 
+## About This Project
+
+Agent HQ Guard is a **personal R&D passion project** exploring governance solutions for AI development. This represents independent research and experimentation, shared openly for the community to learn from or adapt. It is not a commercial product or actively maintained service—no warranties, guarantees, or support commitments are implied.
+
+---
+
 **Ready to dive deeper?** Check out the [Quick Start Guide](quickstart.md) for technical setup, or the [FAQ](faq.md) for detailed answers.

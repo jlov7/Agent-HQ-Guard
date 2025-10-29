@@ -221,3 +221,9 @@ Found an error or have suggestions?
 ---
 
 **Welcome to Agent HQ Guard!** 🚀 Start with the guide that matches your role, and explore deeper as you need.
+
+---
+
+## About This Project
+
+Agent HQ Guard is a **personal R&D passion project** exploring governance solutions for autonomous AI development. This represents independent research and experimentation, shared openly for the community to learn from or adapt. It is not a commercial product or actively maintained service—no warranties, guarantees, or support commitments are implied.
