@@ -7,7 +7,7 @@ allow_agents:
   - google-jules
 max_tokens_per_run: 80000
 write_scopes:
-  - path: "src/**"
+  - path: "**"
     protected:
       - "infra/**"
       - ".github/**"

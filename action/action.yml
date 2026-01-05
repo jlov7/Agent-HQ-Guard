@@ -12,11 +12,25 @@ inputs:
     description: "Override max tokens for run"
     required: false
     default: "0"
+  github_token:
+    description: "GitHub token for PR context (changes/approvals)"
+    required: false
+  changes:
+    description: "Comma-separated list of changed files (overrides PR detection)"
+    required: false
+  changes_file:
+    description: "Path to a newline-delimited changed files list"
+    required: false
+  approvals:
+    description: "Approved review count (overrides PR detection)"
+    required: false
 outputs:
   allow:
     description: "True if run passes guardrails"
   reasons:
     description: "JSON array of reasons for denial"
+  annotations:
+    description: "JSON array of annotation objects (path/message)"
   result_path:
     description: "Path to the generated evaluation JSON"
 runs:

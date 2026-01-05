@@ -1,22 +1,25 @@
 {
-  "name": "@agent-hq-guard/action",
+  "name": "@agent-hq-guard/evaluator",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./src/index.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "build": "tsup src/index.ts --format cjs --dts --tsconfig tsconfig.json",
+    "build": "tsup src/index.ts --tsconfig tsconfig.json && tsc --project tsconfig.json --emitDeclarationOnly",
     "lint": "eslint --max-warnings=0 \"src/**/*.ts\"",
     "test": "vitest run --coverage",
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@actions/core": "^1.10.1",
-    "@actions/github": "^6.0.0",
-    "@agent-hq-guard/evaluator": "workspace:*",
-    "@agent-hq-guard/policy": "workspace:*",
-    "@agent-hq-guard/provenance": "workspace:*",
-    "glob": "^10.3.10"
+    "@agent-hq-guard/policy": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",

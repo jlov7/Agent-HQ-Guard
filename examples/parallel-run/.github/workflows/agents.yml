@@ -58,6 +58,7 @@ jobs:
           policy: examples/parallel-run/policy.yaml
           manifest_glob: out/*.json
           budget_tokens: 40000
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/upload-artifact@v4
         with:

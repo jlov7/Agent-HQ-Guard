@@ -57,7 +57,7 @@ Agent HQ Guard enforces **policy-driven governance** for autonomous AI agent run
 - 🔒 **Agent Authorization** — Control which AI providers can execute
 - 💰 **Budget Enforcement** — Hard limits on token consumption
 - 🛡️ **Protected Paths** — Block changes to sensitive files without approval
-- ✍️ **Provenance** — Require cryptographic signatures for auditability
+- ✍️ **Provenance** — Require signatures with schema validation for auditability
 
 ### Two Integration Paths
 
@@ -78,8 +78,8 @@ Agent HQ Guard enforces **policy-driven governance** for autonomous AI agent run
 1. **Agent workflow** runs and generates a credential manifest
 2. **Guard Action** validates manifest locally (fast feedback)
 3. **Guard App** downloads manifest and evaluates policy
-4. **Policy Engine** (OPA) determines allow/deny
-5. **Provenance Library** verifies signatures
+4. **Evaluator** (native) determines allow/deny
+5. **Provenance Library** validates schema + signature structure
 6. **GitHub Checks** API blocks merge if policy fails
 
 ## 🎓 Learning Paths
@@ -106,7 +106,7 @@ Agent HQ Guard enforces **policy-driven governance** for autonomous AI agent run
 
 1. [Architecture](architecture.md) — System design
 2. [Policy Reference](policy-reference.md) — Rego compilation
-3. [Provenance](provenance.md) — Signature verification
+3. [Provenance](provenance.md) — Schema + signature structure validation
 
 ## 🔍 Finding Information
 

@@ -20,7 +20,7 @@ export function createSlashCommandHandler(storage: SlashCommandStorage) {
       if (match) {
         const agent = match[1];
         await storage.addAgentOverride(repo, pullNumber, agent);
-        await context.octokit.issues.createComment({
+        await context.octokit.rest.issues.createComment({
           ...context.repo(),
           issue_number: pullNumber,
           body: `Agent HQ Guard: agent \`${agent}\` added to allowlist for this run.`
@@ -33,7 +33,7 @@ export function createSlashCommandHandler(storage: SlashCommandStorage) {
       if (match) {
         const tokens = Number(match[1]) * (match[2].startsWith("k") ? 1000 : 1);
         await storage.setBudget(repo, pullNumber, tokens);
-        await context.octokit.issues.createComment({
+        await context.octokit.rest.issues.createComment({
           ...context.repo(),
           issue_number: pullNumber,
           body: `Agent HQ Guard: budget set to ${tokens} tokens.`

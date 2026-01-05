@@ -11,14 +11,16 @@ Agent HQ Guard enforces four core responsibilities:
 ### 1. Policy Enforcement
 
 - **Sentinel-compatible YAML** drives allowlists, token budgets, protected paths, and approval counts
-- **Rego compilation** converts policies to OPA bundles
-- **Evaluation** happens on every workflow run completion
+- **Rego compilation** exports optional OPA bundles for external policy engines
+- **Evaluation** happens on every workflow run completion using the native evaluator
 
 ### 2. Provenance Verification
 
-- **Signed A2PA manifests** (Sigstore + in-toto + C2PA bindings) required before checks pass
-- **Signature validation** verifies Sigstore envelopes
-- **Rekor lookups** confirm transparency log entries
+- **Signed A2PA manifests** required before checks pass
+- **Schema validation** enforces the credential shape
+- **Signature structure checks** validate PEM formatting
+
+Note: External cosign/Rekor verification can be layered in your workflows, but Guard itself only performs structural checks today.
 
 ### 3. Budget Governance
 
@@ -185,14 +187,14 @@ Recommended Grafana dashboard panels:
 **Symptoms:**
 
 - "Provenance invalid" error
-- Signature verification failures
+- Signature structure failures
 
 **Investigation:**
 
 1. **Verify manifest upload** — Check workflow artifact exists
-2. **Check signing step** — Ensure `cosign sign-blob` ran
-3. **Verify schema** — Manifest matches `action_credential_v0.json`
-4. **Manual verification:**
+2. **Verify schema** — Manifest matches `action_credential_v0.json`
+3. **Check signatures** — Ensure `signatures[]` entries are present and PEM formatted
+4. **Optional external verification:**
    ```bash
    cosign verify-blob \
      --certificate-oidc-issuer https://token.actions.githubusercontent.com \
@@ -202,9 +204,9 @@ Recommended Grafana dashboard panels:
 
 **Resolution:**
 
-- Fix signing workflow
+- Fix manifest generation/signature metadata
 - Re-run workflow after fixes
-- Update policy if signing optional temporarily
+- If using external cosign checks, fix that workflow step
 
 ### Mission Control Unreachable
 
@@ -360,7 +362,7 @@ sqlite3 guard.db "DELETE FROM overrides WHERE pr_number IN (SELECT number FROM m
 ### Privacy Considerations
 
 - **No PII storage** — Guard doesn't store personal data
-- **Hash-only** — Credentials stored as hashes, not content
+- **No manifest persistence** — Credentials stay in GitHub artifacts; Guard only posts summaries
 - **Artifact isolation** — GitHub artifacts are repository-scoped
 - **Log sanitization** — Avoid logging sensitive data
 

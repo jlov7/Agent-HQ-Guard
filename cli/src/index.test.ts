@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { normalizePolicy } from "@agent-hq-guard/policy";
 import type { ActionCredential } from "@agent-hq-guard/provenance";
+import { verifyCredential } from "@agent-hq-guard/provenance";
 import { evaluateManifest } from "./index";
 
 const credential: ActionCredential = {
@@ -48,7 +49,11 @@ describe("evaluateManifest", () => {
       provenance_required: true
     });
 
-    const result = evaluateManifest(policy, credential, 0);
+    const report = verifyCredential(credential);
+    const result = evaluateManifest(policy, credential, report, {
+      changes: [],
+      approvals: 0
+    });
     expect(result.allow).toBe(true);
   });
 
@@ -64,10 +69,14 @@ describe("evaluateManifest", () => {
       signatures: []
     };
 
-    const result = evaluateManifest(policy, tampered, 400);
+    const report = verifyCredential(tampered);
+    const result = evaluateManifest(policy, tampered, report, {
+      changes: [],
+      approvals: 0
+    });
     expect(result.allow).toBe(false);
+    expect(result.reasons).toContain("Token usage 1200 exceeds max 500.");
+    expect(result.reasons).toContain("Provenance credential is missing or invalid.");
     expect(result.reasons).toContain("Provenance: No signatures present on credential.");
-    expect(result.reasons).toContain("Token usage 1200 exceeds limit 500.");
-    expect(result.reasons).toContain("Token usage 1200 exceeds limit 400.");
   });
 });

@@ -112,6 +112,7 @@ write_scopes:
 - Agents can write to `path` patterns
 - If they touch `protected` patterns, approvals are required
 - Protected paths without approvals → BLOCKED
+- If you want to protect paths outside a narrow scope, add another scope or use `path: "**"`
 
 **Example:**
 
@@ -159,10 +160,9 @@ provenance_required: true
 
 **What gets verified:**
 
-- Signature presence (Sigstore envelope)
-- Certificate validity (OIDC issuer)
-- Rekor transparency log entry
 - Manifest schema compliance
+- Signature presence + PEM formatting
+- Artifact `sha256` format
 
 ## Complete Policy Examples
 
@@ -288,30 +288,52 @@ within_budget {
 }
 
 valid_scope {
-  not protected_path_modified
+  not disallowed_file
 }
 
-protected_path_modified {
+disallowed_file {
   file := input.changes.files[_]
-  pattern := protected_patterns[_]
-  matches_pattern(pattern, file)
+  not file_allowed(file)
 }
 
-protected_patterns := ["infra/**", ".github/**"]
+file_allowed(file) {
+  some pattern in allowed_paths
+  glob.match(pattern, ["/"], file)
+}
+
+protected_path_touched {
+  file := input.changes.files[_]
+  pattern := protected_paths[_]
+  glob.match(pattern, ["/"], file)
+}
+
+allowed_paths := ["**"]
+protected_paths := ["infra/**", ".github/**"]
+
+approvals_required {
+  required_approvals > 0
+  protected_path_touched
+}
 
 approvals_satisfied {
-  input.approvals.destructive.count >= required
-  required := 1
+  not approvals_required
+}
+
+approvals_satisfied {
+  approvals_required
+  input.approvals.destructive.count >= required_approvals
 }
 
 provenance_ok {
   input.provenance.valid == true
 }
+
+required_approvals := 1
 ```
 
 ### Policy Inputs
 
-The evaluator feeds this structure into OPA:
+The native evaluator consumes this structure (and the Rego export uses the same shape):
 
 ```json
 {
@@ -320,18 +342,14 @@ The evaluator feeds this structure into OPA:
     "capabilities": ["code-generation", "bug-fixing"]
   },
   "usage": {
-    "tokens": 1200,
-    "cost_estimate": 0.012
+    "tokens": 1200
   },
   "changes": {
-    "files": ["src/index.ts", "src/infra/config.yaml"],
-    "additions": 150,
-    "deletions": 50
+    "files": ["src/index.ts", "src/infra/config.yaml"]
   },
   "approvals": {
     "destructive": {
-      "count": 1,
-      "approvers": ["@alice", "@bob"]
+      "count": 1
     }
   },
   "provenance": {
@@ -425,18 +443,40 @@ Create test manifests:
 {
   "version": "0.1.0",
   "run_id": "test-run-123",
-  "agents": [{ "id": "openai-codex", "capabilities": [] }],
+  "repository": {
+    "owner": "demo",
+    "name": "repo",
+    "ref": "refs/heads/feature",
+    "commit": "0123456789abcdef0123456789abcdef01234567"
+  },
+  "workflow": {
+    "name": "agents",
+    "run_number": 1,
+    "trigger": "workflow_dispatch"
+  },
+  "agents": [
+    { "id": "openai-codex", "provider": "openai", "capabilities": [] }
+  ],
+  "decisions": [],
   "budgets": {
-    "tokens": 45000
+    "tokens": 45000,
+    "currency": { "amount": 0, "units": "USD" }
   },
   "artifacts": [],
-  "signatures": []
+  "signatures": [
+    {
+      "issuer": "sigstore",
+      "timestamp": "2024-01-01T00:00:00Z",
+      "signature": "-----BEGIN SIGNATURE-----\n...",
+      "rekor_entry": "https://rekor.dev/entry/123"
+    }
+  ]
 }
 ```
 
-### OPA Direct Testing
+### Optional OPA Testing
 
-Test Rego directly:
+If you export Rego, you can test it directly with OPA:
 
 ```bash
 # Generate input.json from manifest
@@ -446,9 +486,9 @@ opa eval \
   'data.agenthq.guard.allow'
 ```
 
-## Windows MCP Alignment
+## Windows MCP Alignment (Future)
 
-Guard supports Windows MCP mediation data for per-tool approvals (future).
+Guard plans to support Windows MCP mediation data for per-tool approvals.
 
 ### Policy Extensions
 
@@ -552,7 +592,7 @@ max_tokens_per_run: 80000
 ### Performance Issues
 
 - Policies are cached after first load
-- OPA evaluation is fast (< 10ms)
+- Native evaluation is fast (< 10ms); exported Rego is similarly lightweight
 - Consider policy complexity (avoid excessive patterns)
 
 ---

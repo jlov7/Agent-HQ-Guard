@@ -101,8 +101,8 @@ max_tokens_per_run: 80000
 
 # File scope controls
 write_scopes:
-  - path: "src/**" # Allow writes to src/
-    protected: # But protect these subdirectories
+  - path: "**" # Allow writes across the repo
+    protected: # But protect these paths
       - "infra/**" # Infrastructure changes need approval
       - ".github/**" # GitHub workflows need approval
 
@@ -121,6 +121,7 @@ provenance_required: true
 
 - `allow_agents` — Whitelist of approved AI providers
 - `max_tokens_per_run` — Hard budget cap (prevents runaway costs)
+- `write_scopes[].path` — Allowed write scope (use `**` to allow all paths)
 - `write_scopes[].protected` — Files that require human approval
 - `provenance_required` — Enforces cryptographic signing
 
@@ -150,6 +151,7 @@ jobs:
           policy: .github/agent-hq-guard.yml
           manifest_glob: out/*.json
           budget_tokens: 80000
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       # Guard: Upload manifest artifact
       - name: Upload Guard Manifest
@@ -165,6 +167,7 @@ jobs:
 - Validates agent manifests against your policy
 - Fails fast if budgets or provenance are violated
 - Uploads manifests for Guard App to verify
+- Uses PR context (changed files + approvals) when `github_token` is provided; override with `changes` or `approvals` inputs when needed
 
 ## Step 5: Run Locally (Development)
 
@@ -179,7 +182,7 @@ This starts:
 - ✅ Guard GitHub App (Probot)
 - ✅ PostgreSQL (for storage)
 - ✅ Redis (for caching)
-- ✅ OPA (policy engine)
+- ✅ OPA (optional policy engine for external evaluation)
 - ✅ OTEL Collector (observability)
 
 **Local webhook testing:** Use [ngrok](https://ngrok.com/) or GitHub's webhook testing tools to forward events to `http://localhost:3000`.
@@ -198,7 +201,7 @@ pnpm --filter @agent-hq-guard/cli run build
   --manifests out/*.json
 ```
 
-**What this does:** Lets you test policy changes before opening PRs.
+**What this does:** Lets you test policy changes before opening PRs. Add `--changes` to exercise write scopes and protected paths.
 
 ## Step 6: Configure Branch Protection
 
@@ -291,8 +294,9 @@ fly secrets set APP_ID=xxx PRIVATE_KEY_PATH=xxx WEBHOOK_SECRET=xxx
 ### Provenance validation fails
 
 1. **Verify manifest upload** — Check workflow artifact exists
-2. **Check signing** — Ensure `cosign sign-blob` ran successfully
-3. **Verify schema** — Manifest must match `action_credential_v0.json`
+2. **Verify schema** — Manifest must match `action_credential_v0.json`
+3. **Check signatures** — `signatures[]` entries present and PEM formatted
+4. **Optional external verification** — Run `cosign verify-blob` if your workflow signs manifests
 
 ### Mission control unreachable
 

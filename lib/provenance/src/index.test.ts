@@ -51,6 +51,25 @@ describe("credentialHash", () => {
   it("produces deterministic hash", () => {
     expect(credentialHash(baseCredential)).toEqual(credentialHash(baseCredential));
   });
+
+  it("normalizes nested key ordering", () => {
+    const reordered: ActionCredential = {
+      ...baseCredential,
+      repository: {
+        commit: baseCredential.repository.commit,
+        name: baseCredential.repository.name,
+        owner: baseCredential.repository.owner,
+        ref: baseCredential.repository.ref
+      },
+      workflow: {
+        trigger: baseCredential.workflow.trigger,
+        run_number: baseCredential.workflow.run_number,
+        name: baseCredential.workflow.name
+      }
+    };
+
+    expect(credentialHash(baseCredential)).toEqual(credentialHash(reordered));
+  });
 });
 
 describe("verifyCredential", () => {
@@ -67,6 +86,19 @@ describe("verifyCredential", () => {
     });
 
     expect(result.valid).toBe(false);
+  });
+
+  it("reports schema violations", () => {
+    const result = verifyCredential({
+      ...baseCredential,
+      repository: {
+        ...baseCredential.repository,
+        commit: "bad-commit"
+      }
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.reasons.some((reason) => reason.startsWith("Schema:"))).toBe(true);
   });
 });
 

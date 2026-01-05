@@ -44,7 +44,7 @@ Agent HQ Guard is a **GitHub App and Action** that enforces policy, provenance, 
 - **🔒 Agent Authorization** — Whitelist which AI providers can execute in your repositories
 - **💰 Budget Enforcement** — Hard limits on token consumption per run
 - **🛡️ Protected Path Detection** — Block changes to sensitive files without approval
-- **✍️ Provenance Verification** — Require signed manifests (Sigstore, in-toto, C2PA) for auditability
+- **✍️ Provenance Verification** — Validate manifest schema + signature structure with hooks for Sigstore/C2PA
 - **✅ GitHub Checks Integration** — Block merges until all policies pass
 - **🎛️ Human Overrides** — Slash commands (`/agent-allow`, `/budget`) for maintainer controls
 
@@ -54,7 +54,8 @@ Agent HQ Guard is a **GitHub App and Action** that enforces policy, provenance, 
 | ------------------------------------------ | ----------------------------------------------------- | ------------------------- |
 | **GitHub App** (`app/`)                    | Probot service monitoring PRs, workflows, and checks  | DevOps/Platform teams     |
 | **GitHub Action** (`action/`)              | Validates manifests in CI/CD pipelines                | Developers                |
-| **Policy Engine** (`lib/policy/`)          | YAML → Rego compiler for Sentinel-compatible policies | Security/Policy teams     |
+| **Evaluator** (`lib/evaluator/`)           | Native policy evaluation (scopes, approvals, budgets) | Platform/Security teams   |
+| **Policy Engine** (`lib/policy/`)          | YAML schema + Rego compiler for external engines      | Security/Policy teams     |
 | **Provenance Toolkit** (`lib/provenance/`) | Credential validation, signing, and verification      | Security/Compliance teams |
 | **CLI** (`cli/`)                           | Local simulation and testing                          | All developers            |
 | **Examples** (`examples/`)                 | Reference implementations                             | Everyone                  |
@@ -117,7 +118,7 @@ docker-compose up --build
 ### Compliance & Audit
 
 **Problem:** Can't prove what agent made which change, or when.  
-**Solution:** Signed provenance manifests (Sigstore + C2PA) provide cryptographic proof of every run.
+**Solution:** Signed manifests with schema + signature validation provide a defensible audit trail (Sigstore/C2PA integration-ready).
 
 ### Multi-Vendor Control
 

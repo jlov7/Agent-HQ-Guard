@@ -8,6 +8,7 @@ services:
       - NODE_ENV=development
       - DATABASE_URL=postgres://postgres:postgres@db:5432/agent_hq_guard
       - REDIS_URL=redis://redis:6379/0
+      # Optional OPA sidecar for external policy testing.
       - OPA_URL=http://opa:8181
     depends_on:
       - db
@@ -31,6 +32,7 @@ services:
     ports:
       - "6379:6379"
 
+  # Optional OPA sidecar for external policy testing.
   opa:
     image: openpolicyagent/opa:latest
     command:

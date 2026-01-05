@@ -81,7 +81,7 @@ export default function agentHqGuard(app: Probot) {
     });
 
     if (evaluation.credential && evaluation.credentialReport) {
-      await context.octokit.issues.createComment({
+      await context.octokit.rest.issues.createComment({
         ...context.repo(),
         issue_number: evaluation.pullNumber,
         body: createCredentialSummaryMarkdown(evaluation.credential, evaluation.credentialReport)

@@ -27,19 +27,21 @@ export async function ensureGuardCheck<TName extends GuardContextName>(
 ) {
   const { owner, repo } = context.repo();
 
-  const checks = await context.octokit.checks.listForRef({
+  const checks = await context.octokit.rest.checks.listForRef({
     owner,
     repo,
     ref: headSha
   });
 
-  const existing = checks.data.check_runs.find((run) => run.name === GUARD_CHECK_NAME);
+  const existing = checks.data.check_runs.find(
+    (run: { name: string }) => run.name === GUARD_CHECK_NAME
+  );
 
   if (existing) {
     return existing.id;
   }
 
-  const response = await context.octokit.checks.create({
+  const response = await context.octokit.rest.checks.create({
     owner,
     repo,
     name: GUARD_CHECK_NAME,
@@ -63,7 +65,7 @@ export async function updateGuardCheck<TName extends GuardContextName>(
 ) {
   const { owner, repo } = context.repo();
 
-  await context.octokit.checks.update({
+  await context.octokit.rest.checks.update({
     owner,
     repo,
     check_run_id: checkRunId,

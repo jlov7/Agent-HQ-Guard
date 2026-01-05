@@ -61,10 +61,10 @@ Guard also posts a signed credential summary comment showing who the agents were
 **A:** Ensure:
 
 1. Your workflow uploaded the manifest artifact (`agent-hq-guard-manifest`)
-2. The manifest was signed with `cosign sign-blob`
+2. The manifest includes signatures in PEM format
 3. The manifest schema matches `action_credential_v0.json`
 
-Re-run the workflow after fixing the manifest signing step.
+Re-run the workflow after fixing the manifest generation step.
 
 ### Q: How do I test policy changes locally?
 
@@ -76,7 +76,7 @@ pnpm --filter @agent-hq-guard/cli exec hqguard simulate \
   --manifests out/*.json
 ```
 
-This lets you test policy changes before opening PRs.
+Add `--changes` if you're testing write-scope or protected-path behavior.
 
 ### Q: Mission control API is down—will Guard fail the PR?
 
@@ -139,7 +139,7 @@ SBOM signing uses GitHub OIDC, so there are no long-lived signing keys to rotate
 
 ### Q: Can I plug in my own policy engine?
 
-**A:** Yes! Guard compiles YAML into Rego. You can:
+**A:** Yes. Guard compiles YAML into Rego for external engines or testing. You can:
 
 1. Build your own Rego bundle:
 
@@ -147,11 +147,9 @@ SBOM signing uses GitHub OIDC, so there are no long-lived signing keys to rotate
    pnpm --filter @agent-hq-guard/policy run build
    ```
 
-2. Deploy to your OPA instance
+2. Deploy to your OPA instance for external testing
 
-3. Swap evaluation endpoint via `OPA_URL` in compose file
-
-Guard provides the framework; you control the policy engine.
+Guard's app uses the native evaluator by default; the Rego export is optional.
 
 ### Q: How do I monitor Guard health?
 
@@ -171,7 +169,7 @@ Configure these in:
 **A:** See [Operator Guide](operator-guide.md) for full runbook. Quick checklist:
 
 1. **Check fails unexpectedly** → Review PR annotations, inspect artifacts, run CLI simulation
-2. **Provenance validation failure** → Verify manifest upload, check cosign signing
+2. **Provenance validation failure** → Verify manifest upload, check signature fields + schema
 3. **Mission control unreachable** → Guard retries automatically; disable via `AGENT_HQ_API_URL` if needed
 
 ### Q: How do I audit Guard decisions?
@@ -235,7 +233,7 @@ Manifests in GitHub artifacts follow standard retention (7-90 days).
 
 - CLI-only workflows
 - Custom integration using Guard libraries
-- Policy engine extraction (OPA bundle)
+- Policy engine extraction (Rego export)
 
 ### Q: What about Windows MCP alignment?
 

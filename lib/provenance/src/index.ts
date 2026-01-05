@@ -1,6 +1,9 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import Ajv, { type ErrorObject } from "ajv";
+import addFormats from "ajv-formats";
+import actionCredentialSchema from "../../../packages/schemas/action_credential_v0.json";
 
 export interface ActionCredentialSignature {
   issuer: string;
@@ -64,31 +67,47 @@ export interface CredentialReport {
   summary: string;
 }
 
+export interface SchemaReport {
+  valid: boolean;
+  errors: string[];
+}
+
+const ajv = new Ajv({ allErrors: true, strict: false });
+addFormats(ajv);
+const validateSchema = ajv.compile(actionCredentialSchema);
+
 export function readCredentialFromFile(filePath: string): ActionCredential {
   const buffer = fs.readFileSync(filePath, "utf-8");
   return JSON.parse(buffer) as ActionCredential;
 }
 
 export function credentialHash(credential: ActionCredential): string {
-  const data = JSON.stringify(credential, Object.keys(credential).sort());
+  const data = stableStringify(credential);
   return crypto.createHash("sha256").update(data).digest("hex");
 }
 
 export function verifyCredential(credential: ActionCredential): CredentialReport {
   const reasons: string[] = [];
 
-  if (!credential.signatures.length) {
+  const schemaReport = validateCredentialSchema(credential);
+  if (!schemaReport.valid) {
+    reasons.push(...schemaReport.errors.map((error) => `Schema: ${error}`));
+  }
+
+  const signatures = credential.signatures ?? [];
+  if (!signatures.length) {
     reasons.push("No signatures present on credential.");
   }
 
-  const invalidArtifacts = credential.artifacts.filter(
+  const artifacts = credential.artifacts ?? [];
+  const invalidArtifacts = artifacts.filter(
     (artifact) => !/^[0-9a-f]{64}$/i.test(artifact.sha256)
   );
   if (invalidArtifacts.length) {
     reasons.push(`Artifacts missing sha256: ${invalidArtifacts.map((a) => a.name).join(", ")}`);
   }
 
-  for (const signature of credential.signatures) {
+  for (const signature of signatures) {
     if (!signature.signature.startsWith("-----BEGIN")) {
       reasons.push(`Signature from ${signature.issuer} is not PEM encoded.`);
     }
@@ -96,9 +115,9 @@ export function verifyCredential(credential: ActionCredential): CredentialReport
 
   const summary = [
     `Run: ${credential.run_id}`,
-    `Agents: ${credential.agents.map((agent) => agent.id).join(", ") || "none"}`,
-    `Tokens: ${credential.budgets.tokens}`,
-    `Artifacts: ${credential.artifacts.length}`
+    `Agents: ${credential.agents?.map((agent) => agent.id).join(", ") || "none"}`,
+    `Tokens: ${credential.budgets?.tokens ?? 0}`,
+    `Artifacts: ${artifacts.length}`
   ].join(" | ");
 
   return {
@@ -141,4 +160,43 @@ export function resolveCredentialManifestPaths(
   return manifests.map((manifestPath) =>
     path.isAbsolute(manifestPath) ? manifestPath : path.join(credentialDir, manifestPath)
   );
+}
+
+export function validateCredentialSchema(credential: unknown): SchemaReport {
+  const valid = validateSchema(credential);
+  if (valid) {
+    return { valid: true, errors: [] };
+  }
+
+  const errors = (validateSchema.errors ?? []).map((error) => formatAjvError(error));
+  return {
+    valid: false,
+    errors
+  };
+}
+
+function formatAjvError(error: ErrorObject): string {
+  const pathLabel = error.instancePath ? error.instancePath : "/";
+  const detail = error.message ?? "Invalid value";
+  return `${pathLabel} ${detail}`.trim();
+}
+
+function stableStringify(value: unknown): string {
+  if (value === null || value === undefined) {
+    return JSON.stringify(value);
+  }
+
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableStringify(item)).join(",")}]`;
+  }
+
+  if (typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .filter(([, entryValue]) => entryValue !== undefined)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, entryValue]) => `${JSON.stringify(key)}:${stableStringify(entryValue)}`);
+    return `{${entries.join(",")}}`;
+  }
+
+  return JSON.stringify(value);
 }

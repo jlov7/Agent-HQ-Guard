@@ -48,7 +48,10 @@ describe("action evaluateCredential", () => {
       provenance_required: true
     });
 
-    const result = evaluateCredential(policy, baseCredential, 0);
+    const result = evaluateCredential(policy, baseCredential, {
+      changes: [],
+      approvals: 0
+    });
     expect(result.allow).toBe(true);
     expect(result.reasons).toHaveLength(0);
   });
@@ -60,12 +63,14 @@ describe("action evaluateCredential", () => {
       provenance_required: true
     });
 
-    const result = evaluateCredential(policy, baseCredential, 400);
+    const result = evaluateCredential(policy, baseCredential, {
+      changes: [],
+      approvals: 0
+    });
     expect(result.allow).toBe(false);
     expect(result.reasons).toEqual([
-      "Agent openai-codex not allowed.",
-      "Token usage 1000 exceeds limit 500.",
-      "Token usage 1000 exceeds limit 400."
+      "Agent openai-codex is not on the allowlist.",
+      "Token usage 1000 exceeds max 500."
     ]);
   });
 });

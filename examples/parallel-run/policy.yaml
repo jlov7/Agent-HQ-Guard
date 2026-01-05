@@ -8,7 +8,7 @@ max_tokens_per_run: 60000
 write_scopes:
   - path: "src/**"
     protected:
-      - "infra/**"
+      - "src/infra/**"
 approvals:
   destructive_ops:
     required: 1

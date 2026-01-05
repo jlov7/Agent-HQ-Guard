@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@agent-hq-guard/policy": "workspace:*",
+    "@agent-hq-guard/evaluator": "workspace:*",
     "@agent-hq-guard/provenance": "workspace:*",
     "commander": "^11.1.0",
     "glob": "^10.3.10"

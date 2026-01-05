@@ -62,30 +62,47 @@ within_budget {
 }
 
 function renderScope(policy: GuardPolicy): string {
+  const allowedPaths = policy.write_scopes.map((scope) => scope.path);
+  const protectedPaths = policy.write_scopes.flatMap((scope) => scope.protected);
+
   if (!policy.write_scopes.length) {
     return `
 valid_scope { true }
-`.trim();
-  }
 
-  const protectedPaths = policy.write_scopes.flatMap((scope) => scope.protected);
+protected_path_touched {
+  file := input.changes.files[_]
+  pattern := protected_paths[_]
+  glob.match(pattern, ["/"], file)
+}
 
-  if (!protectedPaths.length) {
-    return `
-valid_scope { true }
+protected_paths := []
 `.trim();
   }
 
   return `
 valid_scope {
-  not violates_protected_path
+  not disallowed_file
 }
 
-violates_protected_path {
-  some changed in input.changes.files
-  some path in protected_paths
-  glob.match(path, ["/"], changed)
+disallowed_file {
+  file := input.changes.files[_]
+  not file_allowed(file)
 }
+
+file_allowed(file) {
+  some pattern in allowed_paths
+  glob.match(pattern, ["/"], file)
+}
+
+protected_path_touched {
+  file := input.changes.files[_]
+  pattern := protected_paths[_]
+  glob.match(pattern, ["/"], file)
+}
+
+allowed_paths := [
+  ${allowedPaths.map((p) => `"${p}"`).join(",\n  ")}
+]
 
 protected_paths := [
   ${protectedPaths.map((p) => `"${p}"`).join(",\n  ")}
@@ -94,17 +111,29 @@ protected_paths := [
 }
 
 function renderApprovals(policy: GuardPolicy): string {
-  const destructive = policy.approvals.destructive_ops;
+  const required = policy.approvals.destructive_ops?.required ?? 0;
 
-  if (!destructive || destructive.required === 0) {
+  if (required === 0) {
     return `
 approvals_satisfied { true }
 `.trim();
   }
 
   return `
+required_approvals := ${required}
+
+approvals_required {
+  required_approvals > 0
+  protected_path_touched
+}
+
 approvals_satisfied {
-  input.approvals.destructive.count >= ${destructive.required}
+  not approvals_required
+}
+
+approvals_satisfied {
+  approvals_required
+  input.approvals.destructive.count >= required_approvals
 }
 `.trim();
 }

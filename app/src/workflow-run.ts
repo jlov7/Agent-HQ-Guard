@@ -1,6 +1,6 @@
 import AdmZip from "adm-zip";
 import type { Context } from "probot";
-import { assessRun } from "./evaluator";
+import { assessRun } from "@agent-hq-guard/evaluator";
 import type { GuardStorage } from "./storage";
 import type { GuardPolicy } from "@agent-hq-guard/policy";
 import {
@@ -72,10 +72,21 @@ export async function handleWorkflowRunCompleted(
       }
     },
     provenance: {
-      valid: credentialReport?.valid ?? false,
-      credential
+      valid: credentialReport?.valid ?? false
     }
   });
+
+  if (credential) {
+    const contextIssues = validateCredentialContext(credential, {
+      owner,
+      repo,
+      headSha
+    });
+    if (contextIssues.length) {
+      assessment.reasons.push(...contextIssues);
+      assessment.allow = false;
+    }
+  }
 
   const summary = buildSummary(assessment, credentialReport);
 
@@ -91,24 +102,28 @@ export async function handleWorkflowRunCompleted(
 
 async function listChangedFiles(context: Context, pullNumber: number): Promise<string[]> {
   const { owner, repo } = context.repo();
-  const response = await context.octokit.pulls.listFiles({
+  const files = (await context.octokit.paginate(context.octokit.rest.pulls.listFiles, {
     owner,
     repo,
     pull_number: pullNumber,
     per_page: 100
-  });
-  return response.data.map((file) => file.filename);
+  })) as Array<{ filename: string }>;
+  return files.map((file) => file.filename);
 }
 
 async function countApprovals(context: Context, pullNumber: number): Promise<number> {
   const { owner, repo } = context.repo();
-  const response = await context.octokit.pulls.listReviews({
+  const reviews = (await context.octokit.paginate(context.octokit.rest.pulls.listReviews, {
     owner,
     repo,
     pull_number: pullNumber,
     per_page: 100
-  });
-  return response.data.filter((review) => review.state === "APPROVED").length;
+  })) as Array<{
+    user?: { login?: string | null } | null;
+    state?: string;
+    submitted_at?: string | null;
+  }>;
+  return countApprovalsFromReviews(reviews);
 }
 
 async function fetchCredentials(
@@ -116,20 +131,25 @@ async function fetchCredentials(
   runId: number
 ): Promise<ActionCredential[]> {
   const { owner, repo } = context.repo();
-  const artifacts = await context.octokit.actions.listWorkflowRunArtifacts({
+  const artifacts = await context.octokit.rest.actions.listWorkflowRunArtifacts({
     owner,
     repo,
     run_id: runId
   });
 
-  const manifests = artifacts.data.artifacts.filter((artifact) =>
+  const manifestArtifacts = (artifacts.data.artifacts ?? []) as Array<{
+    id: number;
+    name: string;
+  }>;
+
+  const manifests = manifestArtifacts.filter((artifact) =>
     artifact.name.startsWith(MANIFEST_PREFIX)
   );
 
   const credentials: ActionCredential[] = [];
 
   for (const artifact of manifests) {
-    const downloaded = await context.octokit.actions.downloadArtifact({
+    const downloaded = await context.octokit.rest.actions.downloadArtifact({
       owner,
       repo,
       artifact_id: artifact.id,
@@ -165,4 +185,57 @@ function buildSummary(
     : "No credential found.";
 
   return `Decision: ${status}. ${reasonText} ${provenance}`;
+}
+
+function validateCredentialContext(
+  credential: ActionCredential,
+  expected: { owner: string; repo: string; headSha: string }
+): string[] {
+  const reasons: string[] = [];
+  if (
+    credential.repository.owner !== expected.owner ||
+    credential.repository.name !== expected.repo
+  ) {
+    reasons.push(
+      `Credential repository ${credential.repository.owner}/${credential.repository.name} does not match ${expected.owner}/${expected.repo}.`
+    );
+  }
+
+  if (credential.repository.commit !== expected.headSha) {
+    reasons.push(
+      `Credential commit ${credential.repository.commit} does not match PR head ${expected.headSha}.`
+    );
+  }
+
+  return reasons;
+}
+
+function countApprovalsFromReviews(
+  reviews: Array<{
+    user?: { login?: string | null } | null;
+    state?: string;
+    submitted_at?: string | null;
+  }>
+): number {
+  const latestByUser = new Map<string, { state?: string; submitted_at?: string | null }>();
+  for (const review of reviews) {
+    const login = review.user?.login;
+    if (!login) {
+      continue;
+    }
+
+    const existing = latestByUser.get(login);
+    if (!existing || (review.submitted_at ?? "") > (existing.submitted_at ?? "")) {
+      latestByUser.set(login, review);
+    }
+  }
+
+  let count = 0;
+  for (const review of latestByUser.values()) {
+    if (review.state === "APPROVED") {
+      count += 1;
+    }
+  }
+
+  return count;
 }

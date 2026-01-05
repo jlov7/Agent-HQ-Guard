@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assessRun } from "../src/evaluator";
+import { assessRun } from "./index";
 import type { GuardPolicy } from "@agent-hq-guard/policy";
 
 describe("assessRun", () => {
@@ -10,7 +10,7 @@ describe("assessRun", () => {
     write_scopes: [
       {
         path: "src/**",
-        protected: ["infra/**"]
+        protected: ["src/infra/**"]
       }
     ],
     approvals: {
@@ -38,7 +38,7 @@ describe("assessRun", () => {
     const result = assessRun(policy, {
       agents: [{ id: "openai" }],
       usage: { tokens: 5000 },
-      changes: { files: [] },
+      changes: { files: ["src/infra/terraform.tf"] },
       approvals: { destructive: { count: 0 } },
       provenance: { valid: true }
     });
@@ -46,7 +46,7 @@ describe("assessRun", () => {
     expect(result.allow).toBe(false);
     expect(result.reasons).toEqual([
       "Token usage 5000 exceeds max 1000.",
-      "Destructive approvals 0 below required 1."
+      "Protected path src/infra/** modified by src/infra/terraform.tf without required approvals (0/1)."
     ]);
   });
 
@@ -54,13 +54,40 @@ describe("assessRun", () => {
     const result = assessRun(policy, {
       agents: [{ id: "openai" }],
       usage: { tokens: 100 },
-      changes: { files: ["infra/terraform.tf"] },
-      approvals: { destructive: { count: 1 } },
+      changes: { files: ["src/infra/terraform.tf"] },
+      approvals: { destructive: { count: 0 } },
       provenance: { valid: false }
     });
 
     expect(result.allow).toBe(false);
-    expect(result.reasons).toContain("Protected path infra/** modified by infra/terraform.tf.");
+    expect(result.reasons).toContain(
+      "Protected path src/infra/** modified by src/infra/terraform.tf without required approvals (0/1)."
+    );
     expect(result.reasons).toContain("Provenance credential is missing or invalid.");
+  });
+
+  it("blocks changes outside allowed write scopes", () => {
+    const result = assessRun(policy, {
+      agents: [{ id: "openai" }],
+      usage: { tokens: 100 },
+      changes: { files: ["docs/readme.md"] },
+      approvals: { destructive: { count: 1 } },
+      provenance: { valid: true }
+    });
+
+    expect(result.allow).toBe(false);
+    expect(result.reasons).toEqual(["File docs/readme.md is outside allowed write scopes."]);
+  });
+
+  it("allows protected paths when approvals are satisfied", () => {
+    const result = assessRun(policy, {
+      agents: [{ id: "openai" }],
+      usage: { tokens: 100 },
+      changes: { files: ["src/infra/terraform.tf"] },
+      approvals: { destructive: { count: 1 } },
+      provenance: { valid: true }
+    });
+
+    expect(result.allow).toBe(true);
   });
 });

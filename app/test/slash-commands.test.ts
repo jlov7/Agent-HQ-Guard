@@ -23,7 +23,7 @@ describe("slash commands", () => {
         repository: { owner: { login: "me" }, name: "repo" }
       },
       repo: () => ({ owner: "me", repo: "repo" }),
-      octokit: { issues: { createComment: commentMock } }
+      octokit: { rest: { issues: { createComment: commentMock } } }
     } satisfies Partial<Context<"issue_comment.created">>;
 
     await handler(contextPartial as Context<"issue_comment.created">);
@@ -52,7 +52,7 @@ describe("slash commands", () => {
         repository: { owner: { login: "me" }, name: "repo" }
       },
       repo: () => ({ owner: "me", repo: "repo" }),
-      octokit: { issues: { createComment: commentMock } }
+      octokit: { rest: { issues: { createComment: commentMock } } }
     } satisfies Partial<Context<"issue_comment.created">>;
 
     await handler(contextPartial as Context<"issue_comment.created">);

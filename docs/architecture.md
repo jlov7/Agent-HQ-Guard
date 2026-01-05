@@ -6,21 +6,23 @@ This document explains the system architecture, data flows, and deployment topol
 
 ## High-Level Architecture
 
-Agent HQ Guard consists of five main components:
+Agent HQ Guard consists of six core components plus the CLI:
 
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
 │   GitHub App    │────▶│  Policy Engine   │────▶│   Evaluator     │
-│   (Probot)      │     │  (YAML → Rego)   │     │   (OPA)         │
+│   (Probot)      │     │  (YAML + Rego)   │     │   (Native)      │
 └─────────────────┘     └──────────────────┘     └─────────────────┘
          │                        │                         │
          │                        │                         │
          ▼                        ▼                         ▼
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
 │  GitHub Action  │     │  Provenance Lib   │     │   Storage       │
-│  (Workflow)     │     │  (Sigstore/C2PA)  │     │   (SQLite)      │
+│  (Workflow)     │     │  (Schema checks)  │     │   (SQLite)      │
 └─────────────────┘     └──────────────────┘     └─────────────────┘
 ```
+
+Guard evaluates policies using a native TypeScript evaluator by default. The Rego compiler can export bundles for external OPA testing, but the app does not require an OPA sidecar.
 
 ### Component Responsibilities
 
@@ -28,8 +30,9 @@ Agent HQ Guard consists of five main components:
 | ---------------------- | ---------------------------------------------------------- | ---------------- |
 | **GitHub App**         | Receives webhooks, orchestrates evaluation, updates checks | Probot (Express) |
 | **GitHub Action**      | Validates manifests in CI/CD, fails fast                   | TypeScript/Node  |
-| **Policy Engine**      | Compiles YAML policies to Rego, validates schema           | Rego/OPA         |
-| **Provenance Library** | Validates signatures, renders summaries                    | Sigstore/C2PA    |
+| **Evaluator**          | Evaluates policy inputs (scopes, approvals, budgets)        | TypeScript       |
+| **Policy Engine**      | Compiles YAML policies to Rego, validates schema            | TypeScript/Rego  |
+| **Provenance Library** | Validates schema + signature structure, renders summaries   | TypeScript       |
 | **Storage**            | Persists overrides, caches policies                        | SQLite           |
 | **CLI**                | Local simulation and testing                               | TypeScript       |
 
@@ -45,7 +48,7 @@ sequenceDiagram
     participant Action as Guard Action
     participant Artifact as Artifact Store
     participant App as Guard App
-    participant OPA as Policy Engine
+    participant Eval as Evaluator
     participant Review as Reviewer
 
     Dev->>GH: Push / open PR
@@ -59,9 +62,9 @@ sequenceDiagram
     GH->>App: workflow_run.completed webhook
     App->>Artifact: Download manifest archive
     App->>App: Extract credentials
-    App->>OPA: Evaluate policy (Rego)
-    OPA->>App: Return allow/deny + reasons
-    App->>App: Verify provenance signatures
+    App->>Eval: Evaluate policy (native)
+    Eval->>App: Return allow/deny + reasons
+    App->>App: Verify provenance structure
     App->>GH: Update Agent HQ Guard Check
     App->>GH: Add PR annotations (protected paths)
     App->>Review: Post credential summary comment
@@ -71,8 +74,8 @@ sequenceDiagram
 ### Key Decision Points
 
 1. **Local Validation (Action)** — Fast feedback in workflow, fails before artifact upload
-2. **Policy Evaluation (App)** — Full policy check with OPA, considers overrides
-3. **Provenance Verification (App)** — Signature validation, Rekor lookups
+2. **Policy Evaluation (App)** — Native evaluator checks policy + overrides
+3. **Provenance Verification (App)** — Schema + signature structure validation
 4. **Check Update (App)** — Final decision posted to GitHub Checks API
 
 ## Native Mission Control Flow
@@ -84,14 +87,14 @@ sequenceDiagram
     participant Agent as Agent Executor
     participant MC as Mission Control
     participant App as Guard App
-    participant OPA as Policy Engine
+    participant Eval as Evaluator
     participant Tool as Tool Execution
 
     Agent->>MC: Request tool execution
     MC->>App: Query: allow this tool?
     App->>App: Load policy + overrides
-    App->>OPA: Evaluate (with budget tracking)
-    OPA->>App: Return allow/deny + remaining budget
+    App->>Eval: Evaluate (with budget tracking)
+    Eval->>App: Return allow/deny + remaining budget
     App->>MC: Publish decision (retry on failure)
     alt Allow
         MC->>Tool: Execute tool
@@ -126,14 +129,14 @@ Final: Log warning, continue without upstream decision
 ```mermaid
 graph TD
     A[Policy YAML] --> B[Schema Validator]
-    B --> C[Rego Compiler]
-    C --> D[OPA Bundle]
-    D --> E[Policy Evaluator]
+    B --> C[Policy Normalizer]
+    C --> D[Evaluator]
+    C --> E[Rego Export (optional)]
     F[Manifest JSON] --> G[Credential Extractor]
     G --> H[Run Assessment Input]
-    H --> E
-    I[Sqlite Overrides] --> E
-    E --> J[Assessment Result]
+    H --> D
+    I[Sqlite Overrides] --> D
+    D --> J[Assessment Result]
     J --> K[Check Update]
     J --> L[PR Comment]
     J --> M[Annotations]
@@ -182,7 +185,7 @@ The evaluator produces:
 │                                                 │
 │  ┌──────────┐  ┌──────────┐                  │
 │  │ OPA      │  │ OTEL      │                  │
-│  │ :8181    │  │ Collector │                  │
+│  │ (opt.)   │  │ Collector │                  │
 │  └──────────┘  └──────────┘                  │
 └─────────────────────────────────────────────────┘
 ```
@@ -207,7 +210,7 @@ The evaluator produces:
 │                                                 │
 │         ┌──────────┐                           │
 │         │   OPA    │                           │
-│         │ (Bundle) │                           │
+│         │ (opt.)   │                           │
 │         └──────────┘                           │
 └─────────────────────────────────────────────────┘
 ```
@@ -216,7 +219,7 @@ The evaluator produces:
 
 - **App Deployment:** Fly.io, Heroku, Kubernetes, or GitHub Actions self-hosted runner
 - **Database:** Postgres for production (sqlite for local)
-- **Policy Engine:** OPA bundle deployed separately or embedded
+- **Policy Engine:** Native evaluator (OPA bundle optional for external testing)
 - **Monitoring:** OTEL collector → your observability stack
 - **Secrets:** Use provider secrets management (Fly secrets, K8s secrets, etc.)
 
@@ -227,7 +230,7 @@ The evaluator produces:
 ```
 GitHub → Webhook Secret → App (Validates)
 GitHub → App Private Key → GitHub API (Authenticated Requests)
-App → OPA → Policy Evaluation (No auth needed, internal)
+App → Evaluator → Policy Evaluation (No auth needed, internal)
 App → Mission Control → API Key (if configured)
 ```
 
@@ -235,7 +238,7 @@ App → Mission Control → API Key (if configured)
 
 ```
 Manifest → Schema Validation → Credential Extraction
-Credential → Signature Check → Rekor Lookup → C2PA Verification
+Credential → Signature Structure Check
 Result → Summary Generation → PR Comment
 ```
 
@@ -253,10 +256,10 @@ Result → Summary Generation → PR Comment
 | ---------------- | --------------- | ----------------------- |
 | Webhook receipt  | < 100ms         | Network-dependent       |
 | Policy load      | < 50ms          | Cached after first load |
-| OPA evaluation   | < 10ms          | Rego is fast            |
-| Provenance check | < 200ms         | Sigstore API calls      |
+| Evaluation       | < 10ms          | Native evaluator        |
+| Provenance check | < 20ms          | Schema + signature      |
 | Check update     | < 100ms         | GitHub API              |
-| **Total**        | **< 500ms**     | End-to-end              |
+| **Total**        | **< 300ms**     | End-to-end              |
 
 ### Scalability Considerations
 
@@ -277,8 +280,7 @@ Result → Summary Generation → PR Comment
 
 ### External Services
 
-- **Sigstore** — Signature verification
-- **Rekor** — Transparency log queries
+- **Sigstore/Rekor** — Optional external signature verification + transparency logs
 - **Mission Control** — (Optional) Upstream decision publishing
 
 ## Observability
@@ -321,11 +323,11 @@ Track these metrics:
 - **Recovery:** Retry policy load on next webhook
 - **Monitoring:** Alert on persistent load failures
 
-### OPA Unavailable
+### Evaluation Failure
 
-- **Behavior:** Check fails with "policy engine unavailable"
-- **Recovery:** OPA should be highly available (HA deployment)
-- **Monitoring:** OPA health checks
+- **Behavior:** Check fails with "policy evaluation unavailable"
+- **Recovery:** Restart Guard; if using external OPA, ensure it is reachable
+- **Monitoring:** Guard logs + optional OPA health checks
 
 ### Mission Control Unreachable
 

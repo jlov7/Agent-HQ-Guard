@@ -4,6 +4,16 @@
 
 Provenance—the cryptographic proof of who made what changes and when—is essential for trust in autonomous AI development. This guide explains how Agent HQ Guard implements provenance verification using industry-standard signing and verification.
 
+## Implementation Status (Current)
+
+Guard currently verifies:
+
+- Schema validity against `action_credential_v0.json`
+- Signature presence + PEM structure
+- Artifact `sha256` format
+
+Full Sigstore/Rekor/C2PA verification is planned. You can still run external verification (cosign/Rekor) alongside Guard for deeper assurance.
+
 ## Why Provenance Matters
 
 In traditional software development, you know who made changes because:
@@ -36,6 +46,17 @@ Guard uses the Action Credential schema (`packages/schemas/action_credential_v0.
 {
   "version": "0.1.0",
   "run_id": "mission-control-run-123",
+  "repository": {
+    "owner": "demo",
+    "name": "repo",
+    "ref": "refs/heads/main",
+    "commit": "0123456789abcdef0123456789abcdef01234567"
+  },
+  "workflow": {
+    "name": "guarded-run",
+    "run_number": 42,
+    "trigger": "pull_request"
+  },
   "agents": [
     {
       "id": "openai-codex",
@@ -43,31 +64,27 @@ Guard uses the Action Credential schema (`packages/schemas/action_credential_v0.
       "provider": "openai"
     }
   ],
+  "decisions": [],
   "budgets": {
     "tokens": 45000,
-    "cost_estimate": 0.45
+    "currency": {
+      "amount": 0,
+      "units": "USD"
+    }
   },
   "artifacts": [
     {
-      "path": "src/index.ts",
-      "hash": "sha256:abc123...",
-      "manifest": {
-        "reference": "c2pa://example.com/manifest.json"
-      }
+      "name": "manifest.json",
+      "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "bindings": []
     }
   ],
   "signatures": [
     {
+      "issuer": "sigstore",
+      "timestamp": "2024-01-01T00:00:00Z",
       "signature": "-----BEGIN SIGNATURE-----\n...",
-      "certificate": "-----BEGIN CERTIFICATE-----\n...",
-      "rekor_uuid": "abc123...",
-      "rekor_url": "https://rekor.sigstore.dev"
-    }
-  ],
-  "bindings": [
-    {
-      "type": "sha256",
-      "value": "abc123..."
+      "rekor_entry": "https://rekor.dev/entry/123"
     }
   ]
 }
@@ -75,17 +92,18 @@ Guard uses the Action Credential schema (`packages/schemas/action_credential_v0.
 
 ### Key Fields
 
-| Field            | Purpose                    | Example                    |
-| ---------------- | -------------------------- | -------------------------- |
-| `version`        | Schema version             | `"0.1.0"`                  |
-| `run_id`         | Mission control identifier | `"run-123"`                |
-| `agents[]`       | Participating agents       | `[{ "id": "claude" }]`     |
-| `budgets.tokens` | Token consumption          | `45000`                    |
-| `artifacts[]`    | Changed files with hashes  | `[{ "path": "src/a.ts" }]` |
-| `signatures[]`   | Sigstore signatures        | `[{ "signature": "..." }]` |
-| `bindings[]`     | Additional attestations    | `[{ "type": "sha256" }]`   |
+| Field               | Purpose                       | Example                        |
+| ------------------- | ----------------------------- | ------------------------------ |
+| `version`           | Schema version                | `"0.1.0"`                      |
+| `run_id`            | Mission control identifier    | `"run-123"`                    |
+| `repository.*`      | Repo + commit context          | `"owner/name@sha"`             |
+| `workflow.*`        | Workflow metadata             | `"guarded-run"`                |
+| `agents[]`          | Participating agents          | `[{ "id": "claude" }]`         |
+| `budgets.tokens`    | Token consumption             | `45000`                        |
+| `artifacts[]`       | Artifact hashes + bindings     | `[{ "name": "manifest.json" }]` |
+| `signatures[]`      | Signer metadata + signature    | `[{ "issuer": "sigstore" }]`   |
 
-## Signing Workflow
+## External Signing Workflow (Optional)
 
 ### Step 1: Generate Manifest
 
@@ -95,13 +113,36 @@ Your agent workflow creates a credential manifest:
 {
   "version": "0.1.0",
   "run_id": "workflow-123",
+  "repository": {
+    "owner": "demo",
+    "name": "repo",
+    "ref": "refs/heads/feature",
+    "commit": "0123456789abcdef0123456789abcdef01234567"
+  },
+  "workflow": {
+    "name": "agents",
+    "run_number": 7,
+    "trigger": "pull_request"
+  },
   "agents": [{ "id": "openai-codex" }],
-  "budgets": { "tokens": 45000 },
-  "artifacts": []
+  "decisions": [],
+  "budgets": {
+    "tokens": 45000,
+    "currency": { "amount": 0, "units": "USD" }
+  },
+  "artifacts": [],
+  "signatures": [
+    {
+      "issuer": "sigstore",
+      "timestamp": "2024-01-01T00:00:00Z",
+      "signature": "-----BEGIN SIGNATURE-----\n...",
+      "rekor_entry": "https://rekor.dev/entry/123"
+    }
+  ]
 }
 ```
 
-### Step 2: Sign with Cosign
+### Step 2: Sign with Cosign (External)
 
 Sign the manifest using GitHub Actions OIDC:
 
@@ -137,25 +178,25 @@ Upload manifest + signature to GitHub Actions artifact:
 Guard App downloads and verifies:
 
 1. **Schema validation** — Manifest matches `action_credential_v0.json`
-2. **Signature verification** — Cosign signature valid
-3. **Certificate check** — OIDC issuer matches GitHub Actions
-4. **Rekor lookup** — Transparency log entry exists
-5. **Hash verification** — Artifact hashes match claims
+2. **Signature structure** — Signatures are present and PEM formatted
+3. **Hash format** — Artifact `sha256` values are well-formed
+
+For cryptographic signature verification, run cosign/Rekor checks in your workflow or external tooling.
 
 ## Signature Formats
 
-### Sigstore (Default)
+### Sigstore-Style Metadata (External Verification)
 
-**Format:** Sigstore envelope with Rekor transparency log
+**Format:** Metadata fields that can reference Sigstore/Rekor artifacts
 
 ```json
 {
   "signatures": [
     {
-      "signature": "base64-encoded-signature",
-      "certificate": "x509-certificate-pem",
-      "rekor_uuid": "abc123...",
-      "rekor_url": "https://rekor.sigstore.dev"
+      "issuer": "sigstore",
+      "timestamp": "2024-01-01T00:00:00Z",
+      "signature": "-----BEGIN SIGNATURE-----\n...",
+      "rekor_entry": "https://rekor.dev/entry/123"
     }
   ]
 }
@@ -164,9 +205,8 @@ Guard App downloads and verifies:
 **Benefits:**
 
 - ✅ Industry standard (CNCF Sigstore)
-- ✅ OIDC authentication (no key management)
-- ✅ Transparency log (immutable record)
-- ✅ GitHub Actions integration
+- ✅ Transparency log references
+- ✅ Works with external cosign/Rekor verification
 
 ### In-Toto (Future)
 
@@ -198,7 +238,7 @@ Guard App downloads and verifies:
     {
       "manifest": {
         "reference": "c2pa://example.com/manifest.json",
-        "format": "c2pa"
+        "type": "c2pa"
       }
     }
   ]
@@ -215,30 +255,22 @@ Guard App downloads and verifies:
 
 ### Automatic Verification (Guard)
 
-Guard performs verification automatically:
+Guard performs structural verification automatically:
 
 ```typescript
 // 1. Schema validation
-validateSchema(manifest, ACTION_CREDENTIAL_V0_SCHEMA);
+validateCredentialSchema(manifest);
 
-// 2. Signature verification
-cosign.verifyBlob(manifest, signatureBundle);
+// 2. Signature structure checks
+verifyCredential(manifest);
 
-// 3. Certificate validation
-validateCertificate(certificate, {
-  issuer: "https://token.actions.githubusercontent.com"
-});
-
-// 4. Rekor lookup
-rekor.getEntry(rekorUuid);
-
-// 5. Generate summary
+// 3. Generate summary
 createCredentialSummaryMarkdown(manifest, verificationResult);
 ```
 
-### Manual Verification
+### Manual Verification (External)
 
-You can verify manually:
+You can verify signatures manually:
 
 ```bash
 # Verify signature
@@ -258,9 +290,8 @@ curl https://rekor.sigstore.dev/api/v1/log/entries/<rekor-uuid>
 
 ### What Guard Stores
 
-- ✅ **Credential hashes** — Fingerprints for reference
-- ✅ **Verification results** — Pass/fail status
-- ✅ **Summary markdown** — Human-readable comments
+- ✅ **Override records** — Allowlist + budget exceptions (SQLite)
+- ✅ **Evaluation summaries** — Stored in GitHub Checks + comments
 
 ### What Guard Doesn't Store
 
@@ -332,10 +363,16 @@ Use hash pointers when embedding isn't possible:
 
 ```json
 {
-  "bindings": [
+  "artifacts": [
     {
-      "type": "sha256",
-      "value": "abc123..."
+      "name": "model-output.bin",
+      "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "bindings": [
+        {
+          "type": "soft",
+          "value": "sha256:abc123..."
+        }
+      ]
     }
   ]
 }
@@ -354,49 +391,22 @@ Use hash pointers when embedding isn't possible:
 **Check:**
 
 1. Manifest uploaded to artifact?
-2. Manifest signed with cosign?
-3. Schema matches `action_credential_v0.json`?
-4. OIDC issuer matches GitHub Actions?
+2. Schema matches `action_credential_v0.json`?
+3. `signatures[]` present and PEM formatted?
+4. `artifacts[].sha256` values well-formed?
 
 **Fix:**
 
-```bash
-# Re-sign manifest
-cosign sign-blob --oidc-issuer https://token.actions.githubusercontent.com manifest.json
+- Rebuild the manifest payload to match schema
+- Ensure signatures are attached and PEM formatted
+- Re-upload the artifact bundle
 
-# Re-upload artifact
-```
+### External Sigstore Verification
 
-### "Signature verification failed"
+If you run cosign/Rekor checks outside Guard, troubleshoot there:
 
-**Check:**
-
-1. Certificate matches OIDC issuer?
-2. Rekor entry exists?
-3. Signature bundle format correct?
-
-**Fix:**
-
-```bash
-# Verify manually
-cosign verify-blob --bundle manifest.json.bundle manifest.json
-
-# Check Rekor
-rekor-cli get --uuid <rekor-uuid>
-```
-
-### "Rekor lookup timeout"
-
-**Check:**
-
-1. Rekor API accessible?
-2. UUID correct?
-
-**Fix:**
-
-- Guard retries automatically
-- Check Rekor status: https://rekor.sigstore.dev/api/v1/log
-- Use alternative Rekor instance if needed
+- Verify with `cosign verify-blob`
+- Check Rekor entries with `rekor-cli`
 
 ## Best Practices
 
@@ -431,8 +441,7 @@ aws s3 cp manifest.json s3://archive/manifests/
 Set up alerts for:
 
 - Provenance validation failures
-- Signature verification errors
-- Rekor lookup timeouts
+- External signature verification errors
 
 ### 5. Document Signing Process
 

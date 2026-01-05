@@ -54,19 +54,25 @@ describe("workflow run evaluation", () => {
       },
       repo: () => ({ owner: "me", repo: "repo" }),
       octokit: {
-        pulls: {
-          listFiles: async () => ({ data: [] }),
-          listReviews: async () => ({ data: [] })
+        paginate: async (fn: (params: unknown) => Promise<{ data: unknown[] }>, params: unknown) => {
+          const response = await fn(params);
+          return response.data;
         },
-        actions: {
-          listWorkflowRunArtifacts: async () => ({
-            data: {
-              artifacts: [{ id: 1, name: "agent-hq-guard-manifest" }]
-            }
-          }),
-          downloadArtifact: async () => ({
-            data: zip.toBuffer()
-          })
+        rest: {
+          pulls: {
+            listFiles: async () => ({ data: [] }),
+            listReviews: async () => ({ data: [] })
+          },
+          actions: {
+            listWorkflowRunArtifacts: async () => ({
+              data: {
+                artifacts: [{ id: 1, name: "agent-hq-guard-manifest" }]
+              }
+            }),
+            downloadArtifact: async () => ({
+              data: zip.toBuffer()
+            })
+          }
         }
       },
       log: {
