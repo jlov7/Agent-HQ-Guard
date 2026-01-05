@@ -22,11 +22,11 @@
     "@agent-hq-guard/policy": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20.12.7",
-    "eslint": "^8.56.0",
-    "eslint-config-prettier": "^9.1.0",
+    "@types/node": "^25.0.3",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
     "tsup": "^7.2.0",
     "typescript": "^5.4.2",
-    "vitest": "^1.3.1"
+    "vitest": "^4.0.16"
   }
 }
