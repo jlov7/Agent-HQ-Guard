@@ -105,7 +105,7 @@ Add `--changes` if you're testing write-scope or protected-path behavior.
 
 1. Update the action reference in your workflows
 2. Redeploy the Guard App (if self-hosted)
-3. Review policy schema changes (check release notes)
+3. Review policy schema changes (see [Release Notes](release-notes.md))
 4. Test with CLI simulation before deploying
 
 ## For Operations & Security Teams

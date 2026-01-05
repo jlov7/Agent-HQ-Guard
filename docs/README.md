@@ -27,6 +27,7 @@ docs/
 ├── provenance.md            # Credential lifecycle
 ├── architecture.md         # Diagrams & topology
 ├── faq.md                   # Common questions
+├── release-notes.md         # What's new and migration notes
 └── README.md                # You are here
 ```
 
@@ -42,6 +43,10 @@ docs/
 - **[Operator Guide](operator-guide.md)** — Runbooks, monitoring, incident response
 - **[FAQ](faq.md)** — Quick answers to common questions
 - **[Policy Reference](policy-reference.md)** — Writing and testing policies
+
+### For Updates
+
+- **[Release Notes](release-notes.md)** — What's new and migration notes
 
 ### For Deep Dives
 
