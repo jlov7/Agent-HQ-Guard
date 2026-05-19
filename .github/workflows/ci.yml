@@ -14,8 +14,6 @@ jobs:
         with:
           node-version: 20
       - uses: pnpm/action-setup@v6.0.8
-        with:
-          version: 10
       - run: pnpm install --frozen-lockfile
       - run: pnpm store prune
       - run: pnpm format:check
@@ -47,8 +45,6 @@ jobs:
         with:
           node-version: 20
       - uses: pnpm/action-setup@v6.0.8
-        with:
-          version: 10
       - run: pnpm install --frozen-lockfile
       - run: pnpm store prune
       - run: pnpm build
