@@ -60,17 +60,15 @@ jobs:
         with:
           cosign-release: v3.0.6
       - name: Cosign Sign
-        env:
-          COSIGN_EXPERIMENTAL: 1
         run: |
           cosign version
-          cosign sign-blob --yes --oidc-issuer https://token.actions.githubusercontent.com --output-signature sbom.sig sbom.json
+          cosign sign-blob --yes --bundle sbom.bundle sbom.json
       - uses: actions/upload-artifact@v7.0.1
         with:
           name: sbom
           path: |
             sbom.json
-            sbom.sig
+            sbom.bundle
 
   publish-docs:
     needs: build-images
