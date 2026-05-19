@@ -54,7 +54,10 @@ describe("workflow run evaluation", () => {
       },
       repo: () => ({ owner: "me", repo: "repo" }),
       octokit: {
-        paginate: async (fn: (params: unknown) => Promise<{ data: unknown[] }>, params: unknown) => {
+        paginate: async (
+          fn: (params: unknown) => Promise<{ data: unknown[] }>,
+          params: unknown
+        ) => {
           const response = await fn(params);
           return response.data;
         },

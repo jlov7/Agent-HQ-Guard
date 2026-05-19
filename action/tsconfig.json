@@ -5,5 +5,10 @@
     "declaration": true,
     "outDir": "./dist"
   },
-  "include": ["src"]
+  "include": ["src"],
+  "references": [
+    { "path": "../lib/provenance" },
+    { "path": "../lib/policy" },
+    { "path": "../lib/evaluator" }
+  ]
 }

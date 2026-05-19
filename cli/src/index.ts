@@ -74,9 +74,7 @@ program
       if (policy.write_scopes.length && !changes.length) {
         console.log("note: no changed files provided; scope checks were not exercised.");
       }
-      console.log(
-        createCredentialSummaryMarkdown(result.credential, result.credentialReport)
-      );
+      console.log(createCredentialSummaryMarkdown(result.credential, result.credentialReport));
       console.log();
     }
 

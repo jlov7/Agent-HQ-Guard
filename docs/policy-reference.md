@@ -454,9 +454,7 @@ Create test manifests:
     "run_number": 1,
     "trigger": "workflow_dispatch"
   },
-  "agents": [
-    { "id": "openai-codex", "provider": "openai", "capabilities": [] }
-  ],
+  "agents": [{ "id": "openai-codex", "provider": "openai", "capabilities": [] }],
   "decisions": [],
   "budgets": {
     "tokens": 45000,

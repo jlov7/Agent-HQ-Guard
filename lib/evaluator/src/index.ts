@@ -60,7 +60,12 @@ export function assessRun(policy: GuardPolicy, input: RunAssessmentInput): RunAs
 
     if (hasScopes && matchingScopes.length === 0) {
       reasons.push(`File ${normalizedFile} is outside allowed write scopes.`);
-      addAnnotation(annotationKeys, annotations, normalizedFile, "File is outside allowed write scopes.");
+      addAnnotation(
+        annotationKeys,
+        annotations,
+        normalizedFile,
+        "File is outside allowed write scopes."
+      );
       continue;
     }
 
@@ -75,7 +80,12 @@ export function assessRun(policy: GuardPolicy, input: RunAssessmentInput): RunAs
 
     if (matchedProtected.size > 0) {
       for (const pattern of matchedProtected) {
-        addAnnotation(annotationKeys, annotations, normalizedFile, `Protected path ${pattern} modified.`);
+        addAnnotation(
+          annotationKeys,
+          annotations,
+          normalizedFile,
+          `Protected path ${pattern} modified.`
+        );
 
         if (requiredApprovals > 0 && approvalCount < requiredApprovals) {
           reasons.push(

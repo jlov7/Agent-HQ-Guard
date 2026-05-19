@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Personal R&D passion project: Agent HQ Guard governance plug-in for GitHub Agent HQ runs.",
+  "packageManager": "pnpm@10.15.1",
   "scripts": {
     "build": "pnpm -r run build",
     "lint": "pnpm -r run lint",
@@ -16,7 +17,7 @@
     "check": "pnpm lint && pnpm typecheck && pnpm test"
   },
   "engines": {
-    "node": ">=18.18.0"
+    "node": ">=20.18.1"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",
@@ -24,11 +25,8 @@
     "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
-    "@vitest/coverage-v8": "^1.6.1",
+    "@vitest/coverage-v8": "^3.2.4",
     "prettier": "^3.1.1",
     "typescript": "^5.4.2"
-  },
-  "pnpm": {
-    "packageManager": "pnpm@10.15.1"
   }
 }

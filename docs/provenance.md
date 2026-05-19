@@ -92,16 +92,16 @@ Guard uses the Action Credential schema (`packages/schemas/action_credential_v0.
 
 ### Key Fields
 
-| Field               | Purpose                       | Example                        |
-| ------------------- | ----------------------------- | ------------------------------ |
-| `version`           | Schema version                | `"0.1.0"`                      |
-| `run_id`            | Mission control identifier    | `"run-123"`                    |
-| `repository.*`      | Repo + commit context          | `"owner/name@sha"`             |
-| `workflow.*`        | Workflow metadata             | `"guarded-run"`                |
-| `agents[]`          | Participating agents          | `[{ "id": "claude" }]`         |
-| `budgets.tokens`    | Token consumption             | `45000`                        |
-| `artifacts[]`       | Artifact hashes + bindings     | `[{ "name": "manifest.json" }]` |
-| `signatures[]`      | Signer metadata + signature    | `[{ "issuer": "sigstore" }]`   |
+| Field            | Purpose                     | Example                         |
+| ---------------- | --------------------------- | ------------------------------- |
+| `version`        | Schema version              | `"0.1.0"`                       |
+| `run_id`         | Mission control identifier  | `"run-123"`                     |
+| `repository.*`   | Repo + commit context       | `"owner/name@sha"`              |
+| `workflow.*`     | Workflow metadata           | `"guarded-run"`                 |
+| `agents[]`       | Participating agents        | `[{ "id": "claude" }]`          |
+| `budgets.tokens` | Token consumption           | `45000`                         |
+| `artifacts[]`    | Artifact hashes + bindings  | `[{ "name": "manifest.json" }]` |
+| `signatures[]`   | Signer metadata + signature | `[{ "issuer": "sigstore" }]`    |
 
 ## External Signing Workflow (Optional)
 

@@ -21,7 +21,10 @@ const reports = [];
 try {
   reports.push(JSON.parse(output));
 } catch (error) {
-  const lines = output.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+  const lines = output
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
   for (const line of lines) {
     try {
       reports.push(JSON.parse(line));
@@ -56,9 +59,7 @@ for (const payload of reports) {
 if (highFindings.length > 0) {
   console.error("High severity vulnerabilities detected:");
   for (const finding of highFindings) {
-    console.error(
-      `- [${finding.severity.toUpperCase()}] ${finding.module}: ${finding.title}`
-    );
+    console.error(`- [${finding.severity.toUpperCase()}] ${finding.module}: ${finding.title}`);
     if (finding.url) {
       console.error(`  ${finding.url}`);
     }

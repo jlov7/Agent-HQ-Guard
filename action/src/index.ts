@@ -51,17 +51,16 @@ async function run() {
     const credentials = manifests.map((manifestPath) => readCredentialFromFile(manifestPath));
 
     const changesFromInput = await resolveChanges(changesInput, changesFileInput);
-    const approvalsOverride =
-      approvalsInput.trim().length > 0 ? Number(approvalsInput) : undefined;
+    const approvalsOverride = approvalsInput.trim().length > 0 ? Number(approvalsInput) : undefined;
 
     let contextInfo: PullRequestContext | undefined;
     if (!changesFromInput.length || approvalsOverride === undefined) {
       contextInfo = await resolvePullRequestContext(token);
     }
 
-    const changes = changesFromInput.length ? changesFromInput : contextInfo?.files ?? [];
+    const changes = changesFromInput.length ? changesFromInput : (contextInfo?.files ?? []);
     const approvals =
-      approvalsOverride !== undefined ? approvalsOverride : contextInfo?.approvals ?? 0;
+      approvalsOverride !== undefined ? approvalsOverride : (contextInfo?.approvals ?? 0);
 
     if (!changes.length && policy.write_scopes.length) {
       core.warning("No changed files detected; write-scope checks were skipped.");

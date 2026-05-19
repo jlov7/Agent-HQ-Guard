@@ -30,9 +30,9 @@ Guard evaluates policies using a native TypeScript evaluator by default. The Reg
 | ---------------------- | ---------------------------------------------------------- | ---------------- |
 | **GitHub App**         | Receives webhooks, orchestrates evaluation, updates checks | Probot (Express) |
 | **GitHub Action**      | Validates manifests in CI/CD, fails fast                   | TypeScript/Node  |
-| **Evaluator**          | Evaluates policy inputs (scopes, approvals, budgets)        | TypeScript       |
-| **Policy Engine**      | Compiles YAML policies to Rego, validates schema            | TypeScript/Rego  |
-| **Provenance Library** | Validates schema + signature structure, renders summaries   | TypeScript       |
+| **Evaluator**          | Evaluates policy inputs (scopes, approvals, budgets)       | TypeScript       |
+| **Policy Engine**      | Compiles YAML policies to Rego, validates schema           | TypeScript/Rego  |
+| **Provenance Library** | Validates schema + signature structure, renders summaries  | TypeScript       |
 | **Storage**            | Persists overrides, caches policies                        | SQLite           |
 | **CLI**                | Local simulation and testing                               | TypeScript       |
 

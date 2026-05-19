@@ -100,9 +100,7 @@ export function verifyCredential(credential: ActionCredential): CredentialReport
   }
 
   const artifacts = credential.artifacts ?? [];
-  const invalidArtifacts = artifacts.filter(
-    (artifact) => !/^[0-9a-f]{64}$/i.test(artifact.sha256)
-  );
+  const invalidArtifacts = artifacts.filter((artifact) => !/^[0-9a-f]{64}$/i.test(artifact.sha256));
   if (invalidArtifacts.length) {
     reasons.push(`Artifacts missing sha256: ${invalidArtifacts.map((a) => a.name).join(", ")}`);
   }
