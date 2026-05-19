@@ -9,11 +9,11 @@ jobs:
   lint-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6.0.2
+      - uses: actions/setup-node@v6.4.0
         with:
           node-version: 20
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v6.0.8
         with:
           version: 10
       - run: pnpm install --frozen-lockfile
@@ -22,7 +22,7 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7.0.1
         if: always()
         with:
           name: coverage
@@ -38,29 +38,38 @@ jobs:
   build-images:
     needs: lint-test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6.0.2
+      - uses: actions/setup-node@v6.4.0
         with:
           node-version: 20
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v6.0.8
         with:
           version: 10
       - run: pnpm install --frozen-lockfile
       - run: pnpm store prune
       - run: pnpm build
       - name: Generate SBOM
-        run: |
-          curl -L -o syft https://github.com/anchore/syft/releases/download/v0.98.0/syft_0.98.0_linux_amd64
-          chmod +x syft
-          ./syft packages dir:. -o json > sbom.json
+        uses: anchore/sbom-action@v0.24.0
+        with:
+          path: .
+          format: syft-json
+          output-file: sbom.json
+          upload-artifact: false
+          syft-version: v1.44.0
+      - uses: sigstore/cosign-installer@v4.1.2
+        with:
+          cosign-release: v3.0.6
       - name: Cosign Sign
         env:
           COSIGN_EXPERIMENTAL: 1
         run: |
           cosign version
           cosign sign-blob --yes --oidc-issuer https://token.actions.githubusercontent.com --output-signature sbom.sig sbom.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7.0.1
         with:
           name: sbom
           path: |
@@ -71,7 +80,7 @@ jobs:
     needs: build-images
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
       - name: Publish Docs
         run: |
           echo "Docs publication placeholder"
